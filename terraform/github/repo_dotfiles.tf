@@ -1,7 +1,6 @@
 resource "github_repository" "dotfiles" {
   name         = "dotfiles"
-  description  = "my dotfiles"
-  homepage_url = "https://lingrino.com"
+  homepage_url = "https://seanlingren.com"
 
   visibility = "public"
 

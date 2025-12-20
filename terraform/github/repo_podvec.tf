@@ -1,7 +1,6 @@
 resource "github_repository" "podvec" {
   name         = "podvec"
-  description  = ""
-  homepage_url = ""
+  homepage_url = "https://seanlingren.com"
 
   visibility = "private"
 

@@ -1,7 +1,6 @@
 resource "github_repository" "snippets" {
   name         = "snippets"
-  description  = "useful code snippets not ready for oss"
-  homepage_url = "https://lingrino.com"
+  homepage_url = "https://seanlingren.com"
 
   visibility = "private"
 

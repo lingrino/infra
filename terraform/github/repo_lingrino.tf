@@ -1,7 +1,6 @@
 resource "github_repository" "lingrino" {
   name         = "lingrino"
-  description  = "my readme profile"
-  homepage_url = "https://lingrino.com"
+  homepage_url = "https://seanlingren.com"
 
   visibility = "public"
 

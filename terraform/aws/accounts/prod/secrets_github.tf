@@ -53,7 +53,7 @@ resource "github_actions_secret" "glen_goreleaser" {
 }
 
 resource "github_actions_secret" "infra_personal_tflint" {
-  repository      = "infra-personal"
+  repository      = "infra"
   secret_name     = "TFLINT_GITHUB_TOKEN"
   plaintext_value = jsondecode(data.aws_secretsmanager_secret_version.github_keys_tflint.secret_string)["TFLINT_GITHUB_TOKEN"]
 }

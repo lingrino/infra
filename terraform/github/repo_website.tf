@@ -1,7 +1,6 @@
 resource "github_repository" "website" {
   name         = "website"
-  description  = "my personal website"
-  homepage_url = "https://lingrino.com"
+  homepage_url = "https://seanlingren.com"
 
   visibility = "public"
 

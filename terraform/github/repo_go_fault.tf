@@ -1,7 +1,7 @@
 resource "github_repository" "go_fault" {
   name         = "go-fault"
-  description  = "fault injection library in go using standard http middleware"
-  homepage_url = "https://lingrino.com"
+  description  = "go fault injection library"
+  homepage_url = "https://seanlingren.com"
 
   visibility = "public"
 

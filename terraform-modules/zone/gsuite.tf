@@ -5,7 +5,7 @@ resource "cloudflare_dns_record" "txt_gsuite" {
   name    = var.domain
   type    = "TXT"
   ttl     = 1
-  content = "v=spf1 include:_spf.google.com ~all"
+  content = "\"v=spf1 include:_spf.google.com ~all\""
 }
 
 resource "cloudflare_dns_record" "mx_gsuite_verification" {
@@ -32,7 +32,11 @@ resource "cloudflare_dns_record" "txt_gsuite_dkim" {
   name    = "google._domainkey.${var.domain}"
   type    = "TXT"
   ttl     = 1
-  content = var.gsuite_dkim_value
+
+  content = join(" ", [
+    for i in range(0, length(var.gsuite_dkim_value), 255) :
+    format("\"%s\"", substr(var.gsuite_dkim_value, i, 255))
+  ])
 }
 
 resource "cloudflare_dns_record" "txt_gsuite_dmarc" {
@@ -42,5 +46,5 @@ resource "cloudflare_dns_record" "txt_gsuite_dmarc" {
   name    = "_dmarc.${var.domain}"
   type    = "TXT"
   ttl     = 1
-  content = "v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s; pct=100; rua=mailto:sean+dmarc@lingren.com"
+  content = "\"v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s; pct=100; rua=mailto:sean+dmarc@lingren.com\""
 }

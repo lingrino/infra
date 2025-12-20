@@ -1,5 +1,5 @@
-resource "github_repository" "website" {
-  name         = "website"
+resource "github_repository" "site" {
+  name         = "site"
   homepage_url = "https://seanlingren.com"
 
   visibility = "public"
@@ -27,19 +27,19 @@ resource "github_repository" "website" {
   }
 }
 
-resource "github_branch" "website" {
-  repository = github_repository.website.name
+resource "github_branch" "site" {
+  repository = github_repository.site.name
   branch     = "main"
 }
 
-resource "github_branch_default" "website" {
-  repository = github_repository.website.name
-  branch     = github_branch.website.branch
+resource "github_branch_default" "site" {
+  repository = github_repository.site.name
+  branch     = github_branch.site.branch
 }
 
-resource "github_repository_ruleset" "website" {
+resource "github_repository_ruleset" "site" {
   name        = "main"
-  repository  = github_repository.website.name
+  repository  = github_repository.site.name
   target      = "branch"
   enforcement = "active"
 
@@ -58,7 +58,7 @@ resource "github_repository_ruleset" "website" {
   }
 }
 
-resource "github_actions_repository_permissions" "website" {
-  repository      = github_repository.website.name
+resource "github_actions_repository_permissions" "site" {
+  repository      = github_repository.site.name
   allowed_actions = "all"
 }

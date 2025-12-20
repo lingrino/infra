@@ -30,26 +30,20 @@ resource "cloudflare_pages_project" "vaku" {
   production_branch = "main"
 
   build_config = {
-    destination_dir     = "www"
-    build_caching       = true
-    build_command       = ""
-    root_dir            = ""
-    web_analytics_tag   = ""
-    web_analytics_token = ""
+    destination_dir = "www"
+    build_caching   = true
   }
 
   deployment_configs = {
     preview = {
-      fail_open           = true
-      compatibility_date  = "2025-09-15" # https://developers.cloudflare.com/workers/configuration/compatibility-dates/#change-history
-      compatibility_flags = []
-      usage_model         = "standard"
+      compatibility_date = "2025-12-20"
     }
     production = {
-      fail_open           = true
-      compatibility_date  = "2025-09-15" # https://developers.cloudflare.com/workers/configuration/compatibility-dates/#change-history
-      compatibility_flags = []
-      usage_model         = "standard"
+      compatibility_date = "2025-12-20"
     }
+  }
+
+  lifecycle {
+    ignore_changes = [source]
   }
 }

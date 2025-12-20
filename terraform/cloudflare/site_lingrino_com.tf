@@ -18,41 +18,41 @@ resource "cloudflare_dns_record" "lingrino_com" {
   name    = "lingrino.com"
   type    = "CNAME"
   ttl     = 1
-  content = "site-personal.pages.dev"
+  content = "seanlingren.com" # superseded by below redirect
 }
 
-resource "cloudflare_pages_domain" "website" {
-  account_id   = data.cloudflare_account.account.account_id
-  project_name = cloudflare_pages_project.website.name
-  name         = "lingrino.com"
+resource "cloudflare_dns_record" "star_lingrino_com" {
+  zone_id = module.zone_lingrino_com.id
+  proxied = true
+  name    = "*.lingrino.com"
+  type    = "CNAME"
+  ttl     = 1
+  content = "seanlingren.com" # superseded by below redirect
 }
 
-resource "cloudflare_pages_project" "website" {
-  account_id        = data.cloudflare_account.account.account_id
-  name              = "website"
-  production_branch = "main"
+resource "cloudflare_ruleset" "redirect_lingrino_com_to_seanlingren_com" {
+  zone_id = module.zone_lingrino_com.id
 
-  build_config = {
-    build_command       = "go run build.go"
-    destination_dir     = "public"
-    build_caching       = true
-    root_dir            = ""
-    web_analytics_tag   = ""
-    web_analytics_token = ""
-  }
+  name        = "redirect"
+  description = "redirect [*.]lingrino.com to seanlingren.com"
 
-  deployment_configs = {
-    preview = {
-      fail_open           = true
-      compatibility_date  = "2025-09-15" # https://developers.cloudflare.com/workers/configuration/compatibility-dates/#change-history
-      compatibility_flags = []
-      usage_model         = "standard"
+  kind  = "zone"
+  phase = "http_request_dynamic_redirect"
+
+  rules = [
+    {
+      action      = "redirect"
+      description = "redirect [*.]lingrino.com to seanlingren.com"
+      expression  = "true"
+
+      action_parameters = {
+        from_value = {
+          status_code = 301
+          target_url = {
+            value = "https://seanlingren.com"
+          }
+        }
+      }
     }
-    production = {
-      fail_open           = true
-      compatibility_date  = "2025-09-15" # https://developers.cloudflare.com/workers/configuration/compatibility-dates/#change-history
-      compatibility_flags = []
-      usage_model         = "standard"
-    }
-  }
+  ]
 }

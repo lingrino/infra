@@ -15,7 +15,7 @@ resource "cloudflare_dns_record" "lingren_org" {
   name    = "lingren.org"
   type    = "CNAME"
   ttl     = 1
-  content = "lingrino.com" # superseded by below redirect
+  content = "seanlingren.com" # superseded by below redirect
 }
 
 resource "cloudflare_dns_record" "star_lingren_org" {
@@ -24,14 +24,14 @@ resource "cloudflare_dns_record" "star_lingren_org" {
   name    = "*.lingren.org"
   type    = "CNAME"
   ttl     = 1
-  content = "lingrino.com" # superseded by below redirect
+  content = "seanlingren.com" # superseded by below redirect
 }
 
-resource "cloudflare_ruleset" "redirect_lingren_org_to_lingrino_com" {
+resource "cloudflare_ruleset" "redirect_lingren_org_to_seanlingren_com" {
   zone_id = module.zone_lingren_org.id
 
   name        = "redirect"
-  description = "redirect [*.]lingren.org to lingrino.com"
+  description = "redirect [*.]lingren.org to seanlingren.com"
 
   kind  = "zone"
   phase = "http_request_dynamic_redirect"
@@ -39,14 +39,14 @@ resource "cloudflare_ruleset" "redirect_lingren_org_to_lingrino_com" {
   rules = [
     {
       action      = "redirect"
-      description = "redirect [*.]lingren.org to lingrino.com"
+      description = "redirect [*.]lingren.org to seanlingren.com"
       expression  = "true"
 
       action_parameters = {
         from_value = {
           status_code = 301
           target_url = {
-            value = "https://lingrino.com"
+            value = "https://seanlingren.com"
           }
         }
       }

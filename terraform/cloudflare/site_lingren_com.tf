@@ -19,7 +19,7 @@ resource "cloudflare_dns_record" "lingren_com" {
   name    = "lingren.com"
   type    = "CNAME"
   ttl     = 1
-  content = "lingrino.com" # superseded by below redirect
+  content = "seanlingren.com" # superseded by below redirect
 }
 
 resource "cloudflare_dns_record" "star_lingren_com" {
@@ -28,7 +28,7 @@ resource "cloudflare_dns_record" "star_lingren_com" {
   name    = "*.lingren.com"
   type    = "CNAME"
   ttl     = 1
-  content = "lingrino.com" # superseded by below redirect
+  content = "seanlingren.com" # superseded by below redirect
 }
 
 resource "cloudflare_dns_record" "atproto_lingren_com" {

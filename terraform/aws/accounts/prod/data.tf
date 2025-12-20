@@ -1,3 +1,7 @@
+data "github_repositories" "lingrino" {
+  query = "org:lingrino"
+}
+
 data "cloudflare_api_token_permission_groups_list" "all" {
   provider = cloudflare.create-tokens
 }

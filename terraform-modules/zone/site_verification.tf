@@ -5,5 +5,5 @@ resource "cloudflare_dns_record" "txt_base" {
   name    = var.domain
   type    = "TXT"
   ttl     = 1
-  content = each.key
+  content = "\"${each.key}\""
 }

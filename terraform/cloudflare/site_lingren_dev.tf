@@ -27,11 +27,11 @@ resource "cloudflare_dns_record" "star_lingren_dev" {
   content = "lingrino.com" # superseded by below redirect
 }
 
-resource "cloudflare_ruleset" "redirect_lingren_dev_to_lingrino_com" {
+resource "cloudflare_ruleset" "redirect_lingren_dev_to_seanlingren_com" {
   zone_id = module.zone_lingren_dev.id
 
   name        = "redirect"
-  description = "redirect [*.]lingren.dev to lingrino.com"
+  description = "redirect [*.]lingren.dev to seanlingren.com"
 
   kind  = "zone"
   phase = "http_request_dynamic_redirect"
@@ -39,14 +39,14 @@ resource "cloudflare_ruleset" "redirect_lingren_dev_to_lingrino_com" {
   rules = [
     {
       action      = "redirect"
-      description = "redirect [*.]lingren.dev to lingrino.com"
+      description = "redirect [*.]lingren.dev to seanlingren.com"
       expression  = "true"
 
       action_parameters = {
         from_value = {
           status_code = 301
           target_url = {
-            value = "https://lingrino.com"
+            value = "https://seanlingren.com"
           }
         }
       }

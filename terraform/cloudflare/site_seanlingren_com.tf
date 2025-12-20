@@ -9,47 +9,33 @@ module "zone_seanlingren_com" {
   ]
 }
 
-resource "cloudflare_dns_record" "seanlingren_com" {
-  zone_id = module.zone_seanlingren_com.id
-  proxied = true
-  name    = "seanlingren.com"
-  type    = "CNAME"
-  ttl     = 1
-  content = "lingrino.com" # superseded by below redirect
+resource "cloudflare_pages_domain" "site" {
+  account_id   = data.cloudflare_account.account.account_id
+  project_name = cloudflare_pages_project.site.name
+  name         = "seanlingren.com"
 }
 
-resource "cloudflare_dns_record" "star_seanlingren_com" {
-  zone_id = module.zone_seanlingren_com.id
-  proxied = true
-  name    = "*.seanlingren.com"
-  type    = "CNAME"
-  ttl     = 1
-  content = "lingrino.com" # superseded by below redirect
-}
+resource "cloudflare_pages_project" "site" {
+  account_id        = data.cloudflare_account.account.account_id
+  name              = "site"
+  production_branch = "main"
 
-resource "cloudflare_ruleset" "redirect_seanlingren_com_to_lingrino_com" {
-  zone_id = module.zone_seanlingren_com.id
+  build_config = {
+    build_command   = "go run build.go"
+    destination_dir = "public"
+    build_caching   = true
+  }
 
-  name        = "redirect"
-  description = "redirect [*.]seanlingren.com to lingrino.com"
-
-  kind  = "zone"
-  phase = "http_request_dynamic_redirect"
-
-  rules = [
-    {
-      action      = "redirect"
-      description = "redirect [*.]seanlingren.com to lingrino.com"
-      expression  = "true"
-
-      action_parameters = {
-        from_value = {
-          status_code = 307
-          target_url = {
-            value = "https://lingrino.com"
-          }
-        }
-      }
+  deployment_configs = {
+    preview = {
+      compatibility_date = "2025-12-20"
     }
-  ]
+    production = {
+      compatibility_date = "2025-12-20"
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [source]
+  }
 }

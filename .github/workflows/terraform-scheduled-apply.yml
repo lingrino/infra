@@ -1,4 +1,4 @@
-name: Terraform - Scheduled Apply
+name: terraform scheduled apply
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ jobs:
   apply:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Run on All Workspaces
+      - name: trigger run on all workspaces
         run: |
           for wsid in $(curl --header "Authorization: Bearer $TFE_TOKEN" --header "Content-Type: application/vnd.api+json" https://app.terraform.io/api/v2/organizations/lingrino/workspaces | jq -r '.data[].id'); do
             curl \

@@ -1,26 +1,27 @@
-name: Terraform - Validate
+name: validate
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Terraform
+      - name: install terraform
         uses: hashicorp/setup-terraform@v3.1.2
-      - name: Install TFLint
+      - name: install tflint
         uses: terraform-linters/setup-tflint@v6.2.1
         with:
           github-token: ${{ secrets.TFLINT_GITHUB_TOKEN }}
-      - name: Checkout Code
+      - name: checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-      - name: Terraform Format
+      - name: terraform format
         run: terraform fmt -check -diff -recursive
-      - name: Terraform Lint
+      - name: terraform lint
         run: |
           tflint --version
           tflint --init

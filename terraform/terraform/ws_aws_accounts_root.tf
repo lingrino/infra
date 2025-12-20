@@ -11,7 +11,7 @@ resource "tfe_workspace" "aws_accounts_root" {
   file_triggers_enabled = true
 
   vcs_repo {
-    identifier     = "lingrino/infra-personal"
+    identifier     = "lingrino/infra"
     branch         = "main"
     oauth_token_id = data.tfe_oauth_client.github.oauth_token_id
   }

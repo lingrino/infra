@@ -1,7 +1,6 @@
-resource "github_repository" "infra_personal" {
-  name         = "infra-personal"
-  description  = "code for my personal infrastructure"
-  homepage_url = "https://lingrino.com"
+resource "github_repository" "infra" {
+  name         = "infra"
+  homepage_url = "https://seanlingren.com"
 
   visibility = "public"
 
@@ -28,19 +27,19 @@ resource "github_repository" "infra_personal" {
   }
 }
 
-resource "github_branch" "infra_personal" {
-  repository = github_repository.infra_personal.name
+resource "github_branch" "infra" {
+  repository = github_repository.infra.name
   branch     = "main"
 }
 
-resource "github_branch_default" "infra_personal" {
-  repository = github_repository.infra_personal.name
-  branch     = github_branch.infra_personal.branch
+resource "github_branch_default" "infra" {
+  repository = github_repository.infra.name
+  branch     = github_branch.infra.branch
 }
 
-resource "github_repository_ruleset" "infra_personal" {
+resource "github_repository_ruleset" "infra" {
   name        = "main"
-  repository  = github_repository.infra_personal.name
+  repository  = github_repository.infra.name
   target      = "branch"
   enforcement = "active"
 
@@ -86,8 +85,8 @@ resource "github_repository_ruleset" "infra_personal" {
   }
 }
 
-resource "github_actions_repository_permissions" "infra_personal" {
-  repository      = github_repository.infra_personal.name
+resource "github_actions_repository_permissions" "infra" {
+  repository      = github_repository.infra.name
   allowed_actions = "selected"
 
   allowed_actions_config {

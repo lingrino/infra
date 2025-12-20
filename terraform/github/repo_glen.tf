@@ -1,7 +1,7 @@
 resource "github_repository" "glen" {
   name         = "glen"
   description  = "cli to export gitlab variables"
-  homepage_url = "https://lingrino.com"
+  homepage_url = "https://seanlingren.com"
 
   visibility = "public"
 

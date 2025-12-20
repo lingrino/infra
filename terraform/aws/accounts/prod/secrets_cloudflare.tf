@@ -48,16 +48,16 @@ resource "cloudflare_api_token" "terraform_cloud" {
   policies = [
     {
       effect = "allow"
-      resources = {
+      resources = jsonencode({
         "com.cloudflare.api.account.*" = "*"
-      }
+      })
       permission_groups = local.account_permission_group_ids
     },
     {
       effect = "allow"
-      resources = {
+      resources = jsonencode({
         "com.cloudflare.api.account.zone.*" = "*"
-      }
+      })
       permission_groups = local.zone_permission_group_ids
     }
   ]
@@ -94,16 +94,16 @@ resource "cloudflare_api_token" "local" {
   policies = [
     {
       effect = "allow"
-      resources = {
+      resources = jsonencode({
         "com.cloudflare.api.account.*" = "*"
-      }
+      })
       permission_groups = local.account_permission_group_ids
     },
     {
       effect = "allow"
-      resources = {
+      resources = jsonencode({
         "com.cloudflare.api.account.zone.*" = "*"
-      }
+      })
       permission_groups = local.zone_permission_group_ids
     }
   ]

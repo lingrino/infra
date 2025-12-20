@@ -1,7 +1,7 @@
 resource "github_repository" "vaku" {
   name         = "vaku"
   description  = "vaku extends the vault api & cli"
-  homepage_url = "https://lingrino.com"
+  homepage_url = "https://seanlingren.com"
 
   visibility = "public"
 

@@ -46,3 +46,49 @@ Provider credentials are stored in AWS Secrets Manager (prod account) and access
 
 ### Workspace Trigger Patterns
 Workspaces trigger on changes to their directory AND `terraform-modules/**/*.tf`, ensuring module updates propagate.
+
+## File Naming Conventions
+
+### Standard Files (present in every workspace)
+- `meta.tf` - Providers, terraform backend config, required_providers, remote state data sources
+- `variables.tf` - Input variables (typically just `tfc_aws_dynamic_credentials` for TFC integration)
+- `data.tf` - Shared data sources and locals used across multiple resource files
+- `outputs.tf` - Module/workspace outputs
+- Resource files are named by `<service/category>_<resource_description>.tf`:
+
+### Module Files
+Within `terraform-modules/<module>/`:
+- `meta.tf` - Required providers only (no backend - modules inherit from root)
+- `variables.tf` - Input variables with type, description, and defaults
+- `outputs.tf` - Exposed attributes
+- Resource files named by function (e.g., `s3.tf`, `cloudfront.tf` in s3 module)
+
+## Code Conventions
+
+### Resource Naming
+- Resource names use the logical identifier without redundant prefixes: `aws_s3_bucket.s3`, not `aws_s3_bucket.my_bucket`
+- When a file contains multiple related resources, they share a common suffix: `aws_iam_user.backup_arq_mini`, `aws_iam_policy.backup_arq_mini`
+- IAM users for services use path `/service/`
+
+### Tags
+- All resources get a `Name` tag matching their logical name
+- AWS provider `default_tags` adds `terraform = "true"` and `workspace = "<workspace-name>"`
+
+### Provider Configuration
+- AWS providers use conditional logic for local vs TFC credentials:
+  ```hcl
+  profile             = !can(var.tfc_aws_dynamic_credentials.aliases["prod"]) ? "prod" : null
+  shared_config_files = try([var.tfc_aws_dynamic_credentials.aliases["prod"].shared_config_file], null)
+  ```
+- Non-AWS providers fetch credentials from Secrets Manager via ephemeral data sources
+
+### Section Comments
+Files use banner comments to separate sections:
+```hcl
+#################################
+### Section Name              ###
+#################################
+```
+
+### Module Sources
+- Local modules use relative paths with trailing double-slash: `source = "../../../../terraform-modules/s3//"`

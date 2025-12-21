@@ -2,7 +2,7 @@ module "zone_lingrino_dev" {
   source = "../../terraform-modules/zone//"
 
   domain                = "lingrino.dev"
-  cloudflare_account_id = data.cloudflare_account.account.account_id
+  cloudflare_account_id = cloudflare_account.account.id
 
   google_site_verifications = [
     "google-site-verification=vxDuPgFxbbnn0WDnOzSZVz2zzv_rZr6EUegsu2gF6KY", # https://search.google.com/search-console/welcome

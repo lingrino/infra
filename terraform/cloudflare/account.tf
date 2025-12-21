@@ -1,7 +1,3 @@
-data "cloudflare_account" "account" {
-  account_id = "27a6422e1d64fbe9408ab703847ecdab"
-}
-
 resource "cloudflare_account" "account" {
   name = "lingrino"
   type = "standard"

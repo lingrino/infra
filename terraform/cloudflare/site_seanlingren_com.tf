@@ -2,7 +2,7 @@ module "zone_seanlingren_com" {
   source = "../../terraform-modules/zone//"
 
   domain                = "seanlingren.com"
-  cloudflare_account_id = data.cloudflare_account.account.account_id
+  cloudflare_account_id = cloudflare_account.account.id
 
   google_site_verifications = [
     "google-site-verification=cAtcJ0TFUenT4kLGmWnXh_4upiQTPYBnAYik_g_xtMU", # https://search.google.com/search-console/welcome
@@ -10,13 +10,13 @@ module "zone_seanlingren_com" {
 }
 
 resource "cloudflare_pages_domain" "site" {
-  account_id   = data.cloudflare_account.account.account_id
+  account_id   = cloudflare_account.account.id
   project_name = cloudflare_pages_project.site.name
   name         = "seanlingren.com"
 }
 
 resource "cloudflare_pages_project" "site" {
-  account_id        = data.cloudflare_account.account.account_id
+  account_id        = cloudflare_account.account.id
   name              = "site"
   production_branch = "main"
 

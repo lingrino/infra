@@ -2,7 +2,7 @@ module "zone_lingren_com" {
   source = "../../terraform-modules/zone//"
 
   domain                = "lingren.com"
-  cloudflare_account_id = data.cloudflare_account.account.account_id
+  cloudflare_account_id = cloudflare_account.account.id
 
   enable_gsuite     = true
   gsuite_dkim_value = "v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgHnP3rcpXx9kS2EVNQrxx9RX6+XDzyp520TlCkJE4MY1V7x8gX3xbe+nlZqdxKy79QbP3ZOf98+J5tw0wjGJIVucpBLr1nqN/N7hfyn5hSx+K4dQ2YjpS0LBvkWhRiegGeJas5UUba4Hlk0ZFfmcotjapKmSYtt1ZMfjareHo6nvCrPSrhbe19CVqgifXSi2JGFVj2sHweZWWEgsKpqSl6//XkYAm0kFseeGtWvKQGN5n03aYwHZQqg8x2evVmRTMfPYlE7cZxvjf0QItykAj6LCpB7l52WoBszJGGJ1E3NFWByXih4M2a0RFLZAkEVKGEcIwja5nrs6rkZNGQiDDQIDAQAB"

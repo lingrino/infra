@@ -1,5 +1,5 @@
 resource "cloudflare_notification_policy" "origin_availability" {
-  account_id = data.cloudflare_account.account.account_id
+  account_id = cloudflare_account.account.id
 
   enabled    = true
   alert_type = "real_origin_monitoring"

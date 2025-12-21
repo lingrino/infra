@@ -54,7 +54,7 @@ Workspaces trigger on changes to their directory AND `terraform-modules/**/*.tf`
 - `variables.tf` - Input variables (typically just `tfc_aws_dynamic_credentials` for TFC integration)
 - `data.tf` - Shared data sources and locals used across multiple resource files
 - `outputs.tf` - Module/workspace outputs
-- Resource files are named by `<service/category>_<resource_description>.tf`:
+- Resource files are named by `<service/category>_<resource_description>.tf`
 
 ### Module Files
 Within `terraform-modules/<module>/`:

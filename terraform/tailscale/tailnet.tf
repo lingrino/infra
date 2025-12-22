@@ -10,7 +10,7 @@ resource "tailscale_tailnet_settings" "tailnet" {
   posture_identity_collection_on = true
 
   users_approval_on                           = false
-  users_role_allowed_to_join_external_tailnet = "owner"
+  users_role_allowed_to_join_external_tailnet = "admin"
 }
 
 resource "tailscale_contacts" "contacts" {

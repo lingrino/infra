@@ -1,6 +1,6 @@
 resource "cloudflare_leaked_credential_check" "cc" {
   zone_id = cloudflare_zone.zone.id
-  enabled = false
+  enabled = true
 }
 
 resource "cloudflare_schema_validation_settings" "schema" {

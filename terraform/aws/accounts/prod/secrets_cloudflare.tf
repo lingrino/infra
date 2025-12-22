@@ -45,14 +45,14 @@ resource "cloudflare_account_token" "terraform_cloud" {
     {
       effect = "allow"
       resources = jsonencode({
-        "com.cloudflare.api.account.27a6422e1d64fbe9408ab703847ecdab" = "*"
+        "com.cloudflare.api.account.${data.cloudflare_account.account.id}" = "*"
       })
       permission_groups = local.account_permission_group_ids
     },
     {
       effect = "allow"
       resources = jsonencode({
-        "com.cloudflare.api.account.27a6422e1d64fbe9408ab703847ecdab" = "*"
+        "com.cloudflare.api.account.${data.cloudflare_account.account.id}" = "*"
       })
       permission_groups = local.zone_permission_group_ids
     }
@@ -87,14 +87,14 @@ resource "cloudflare_account_token" "local" {
     {
       effect = "allow"
       resources = jsonencode({
-        "com.cloudflare.api.account.27a6422e1d64fbe9408ab703847ecdab" = "*"
+        "com.cloudflare.api.account.${data.cloudflare_account.account.id}" = "*"
       })
       permission_groups = local.account_permission_group_ids
     },
     {
       effect = "allow"
       resources = jsonencode({
-        "com.cloudflare.api.account.27a6422e1d64fbe9408ab703847ecdab" = "*"
+        "com.cloudflare.api.account.${data.cloudflare_account.account.id}" = "*"
       })
       permission_groups = local.zone_permission_group_ids
     }

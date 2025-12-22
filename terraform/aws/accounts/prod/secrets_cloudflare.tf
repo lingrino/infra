@@ -31,32 +31,28 @@ ephemeral "aws_secretsmanager_secret_version" "cloudflare_keys_terraform_cloud" 
 resource "aws_secretsmanager_secret_version" "cloudflare_keys_terraform_cloud" {
   secret_id = aws_secretsmanager_secret.cloudflare_keys_terraform_cloud.id
   secret_string = jsonencode({
-    CLOUDFLARE_API_TOKEN = cloudflare_api_token.terraform_cloud.value,
+    CLOUDFLARE_API_TOKEN = cloudflare_account_token.terraform_cloud.value,
   })
-
-  lifecycle {
-    ignore_changes = [secret_string]
-  }
 }
 
-resource "cloudflare_api_token" "terraform_cloud" {
+resource "cloudflare_account_token" "terraform_cloud" {
   provider = cloudflare.create-tokens
 
-  name   = "terraform-cloud"
-  status = "active"
+  name       = "terraform-cloud"
+  account_id = data.cloudflare_account.account.id
 
   policies = [
     {
       effect = "allow"
       resources = jsonencode({
-        "com.cloudflare.api.account.*" = "*"
+        "com.cloudflare.api.account.${data.cloudflare_account.account.id}" = "*"
       })
       permission_groups = local.account_permission_group_ids
     },
     {
       effect = "allow"
       resources = jsonencode({
-        "com.cloudflare.api.account.zone.*" = "*"
+        "com.cloudflare.api.account.${data.cloudflare_account.account.id}" = "*"
       })
       permission_groups = local.zone_permission_group_ids
     }
@@ -77,32 +73,28 @@ resource "aws_secretsmanager_secret" "cloudflare_keys_local" {
 resource "aws_secretsmanager_secret_version" "cloudflare_keys_local" {
   secret_id = aws_secretsmanager_secret.cloudflare_keys_local.id
   secret_string = jsonencode({
-    CLOUDFLARE_API_TOKEN = cloudflare_api_token.local.value,
+    CLOUDFLARE_API_TOKEN = cloudflare_account_token.local.value,
   })
-
-  lifecycle {
-    ignore_changes = [secret_string]
-  }
 }
 
-resource "cloudflare_api_token" "local" {
+resource "cloudflare_account_token" "local" {
   provider = cloudflare.create-tokens
 
-  name   = "local"
-  status = "active"
+  name       = "local"
+  account_id = data.cloudflare_account.account.id
 
   policies = [
     {
       effect = "allow"
       resources = jsonencode({
-        "com.cloudflare.api.account.*" = "*"
+        "com.cloudflare.api.account.${data.cloudflare_account.account.id}" = "*"
       })
       permission_groups = local.account_permission_group_ids
     },
     {
       effect = "allow"
       resources = jsonencode({
-        "com.cloudflare.api.account.zone.*" = "*"
+        "com.cloudflare.api.account.${data.cloudflare_account.account.id}" = "*"
       })
       permission_groups = local.zone_permission_group_ids
     }

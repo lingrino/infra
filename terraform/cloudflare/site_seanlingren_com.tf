@@ -21,7 +21,7 @@ resource "cloudflare_pages_project" "site" {
   production_branch = "main"
 
   build_config = {
-    build_command   = "go run build.go"
+    build_command   = "go run ./build"
     destination_dir = "public"
     build_caching   = true
   }

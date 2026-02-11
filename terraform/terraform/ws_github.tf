@@ -2,7 +2,7 @@ resource "tfe_workspace" "github" {
   organization = tfe_organization.org.id
   name         = "github"
 
-  terraform_version = "1.14.4"
+  terraform_version = "1.14.5"
   working_directory = "terraform/github"
 
   auto_apply            = true

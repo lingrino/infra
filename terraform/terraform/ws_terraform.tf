@@ -2,7 +2,7 @@ resource "tfe_workspace" "terraform" {
   organization = tfe_organization.org.id
   name         = "terraform"
 
-  terraform_version = "1.14.4"
+  terraform_version = "1.14.5"
   working_directory = "terraform/terraform"
 
   auto_apply            = true

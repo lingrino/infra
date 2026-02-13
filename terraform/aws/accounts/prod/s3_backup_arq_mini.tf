@@ -63,6 +63,7 @@ data "aws_iam_policy_document" "backup_arq_mini" {
       "s3:GetObject",
       "s3:PutObject",
       "s3:DeleteObject",
+      "s3:DeleteObjectVersion",
     ]
 
     resources = ["${module.s3_backup_arq_mini.arn}/*"]

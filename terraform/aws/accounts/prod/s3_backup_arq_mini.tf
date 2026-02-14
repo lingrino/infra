@@ -53,6 +53,9 @@ data "aws_iam_policy_document" "backup_arq_mini" {
       "s3:ListBucket",
       "s3:ListBucketVersions",
       "s3:GetBucketLocation",
+      "s3:GetBucketVersioning",
+      "s3:GetBucketObjectLockConfiguration",
+      "s3:GetLifecycleConfiguration",
     ]
 
     resources = [module.s3_backup_arq_mini.arn]
@@ -63,7 +66,6 @@ data "aws_iam_policy_document" "backup_arq_mini" {
       "s3:GetObject",
       "s3:PutObject",
       "s3:DeleteObject",
-      "s3:DeleteObjectVersion",
     ]
 
     resources = ["${module.s3_backup_arq_mini.arn}/*"]

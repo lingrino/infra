@@ -4,8 +4,7 @@
 provider "aws" {
   region = "us-west-2"
 
-  profile             = !can(var.tfc_aws_dynamic_credentials.aliases["prod"]) ? "prod" : null
-  shared_config_files = try([var.tfc_aws_dynamic_credentials.aliases["prod"].shared_config_file], null)
+  profile = "prod"
 
   default_tags {
     tags = {
@@ -16,7 +15,7 @@ provider "aws" {
 }
 
 ephemeral "aws_secretsmanager_secret_version" "github" {
-  secret_id = "github/keys/terraform-cloud"
+  secret_id = "github/keys/infra"
 }
 
 provider "github" {
@@ -28,15 +27,19 @@ provider "github" {
 ### Terraform                 ###
 #################################
 terraform {
-  cloud {
-    organization = "lingrino"
-
-    workspaces {
-      name = "github"
-    }
+  backend "s3" {
+    bucket              = "lingrino-prod-usw2-terraform-state"
+    key                 = "github/terraform.tfstate"
+    region              = "us-west-2"
+    use_lockfile        = true
+    profile             = "prod"
+    allowed_account_ids = ["840856573771"]
   }
 
   required_providers {
+    aws = {
+      source = "hashicorp/aws"
+    }
     github = {
       source = "integrations/github"
     }

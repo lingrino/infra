@@ -27,9 +27,3 @@ resource "aws_secretsmanager_secret" "terraform_cloud_keys_github" {
 data "aws_secretsmanager_secret_version" "terraform_cloud_keys_github" {
   secret_id = aws_secretsmanager_secret.terraform_cloud_keys_github.id
 }
-
-resource "github_actions_secret" "terraform_cloud" {
-  repository      = "infra"
-  secret_name     = "TFE_TOKEN"
-  plaintext_value = jsondecode(data.aws_secretsmanager_secret_version.terraform_cloud_keys_github.secret_string)["TFE_TOKEN"]
-}

@@ -2,8 +2,7 @@ provider "aws" {
   alias  = "prod"
   region = "us-west-2"
 
-  profile             = !can(var.tfc_aws_dynamic_credentials.aliases["prod"]) ? "prod" : null
-  shared_config_files = try([var.tfc_aws_dynamic_credentials.aliases["prod"].shared_config_file], null)
+  profile = "prod"
 
   default_tags {
     tags = {

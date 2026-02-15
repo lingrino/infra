@@ -4,8 +4,7 @@
 provider "aws" {
   region = "us-west-2"
 
-  profile             = !can(var.tfc_aws_dynamic_credentials.aliases["prod"]) ? "prod" : null
-  shared_config_files = try([var.tfc_aws_dynamic_credentials.aliases["prod"].shared_config_file], null)
+  profile = "prod"
 
   default_tags {
     tags = {
@@ -27,12 +26,13 @@ provider "cloudflare" {
 ### Terraform                 ###
 #################################
 terraform {
-  cloud {
-    organization = "lingrino"
-
-    workspaces {
-      name = "cloudflare"
-    }
+  backend "s3" {
+    bucket              = "lingrino-prod-usw2-terraform-state"
+    key                 = "cloudflare/terraform.tfstate"
+    region              = "us-west-2"
+    use_lockfile        = true
+    profile             = "prod"
+    allowed_account_ids = ["840856573771"]
   }
 
   required_providers {

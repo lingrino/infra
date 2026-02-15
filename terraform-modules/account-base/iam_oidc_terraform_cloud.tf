@@ -52,19 +52,3 @@ data "aws_iam_policy_document" "arp_terraform_cloud" {
     }
   }
 }
-
-resource "tfe_variable" "terraform_cloud_provider_auth" {
-  variable_set_id = data.tfe_variable_set.all.id
-  category        = "env"
-
-  key   = "TFC_AWS_PROVIDER_AUTH_${var.account_name}"
-  value = true
-}
-
-resource "tfe_variable" "terraform_cloud_role_arn" {
-  variable_set_id = data.tfe_variable_set.all.id
-  category        = "env"
-
-  key   = "TFC_AWS_RUN_ROLE_ARN_${var.account_name}"
-  value = aws_iam_role.terraform_cloud.arn
-}

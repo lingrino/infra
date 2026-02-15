@@ -4,8 +4,7 @@
 provider "aws" {
   region = "us-west-2"
 
-  profile             = !can(var.tfc_aws_dynamic_credentials.aliases["prod"]) ? "prod" : null
-  shared_config_files = try([var.tfc_aws_dynamic_credentials.aliases["prod"].shared_config_file], null)
+  profile = "prod"
 
   default_tags {
     tags = {
@@ -35,20 +34,17 @@ provider "tailscale" {
   oauth_client_secret = jsondecode(ephemeral.aws_secretsmanager_secret_version.tailscale.secret_string)["TAILSCALE_OAUTH_CLIENT_SECRET"]
 }
 
-provider "tfe" {
-  token = jsondecode(ephemeral.aws_secretsmanager_secret_version.terraform_cloud_keys_terraform_cloud.secret_string)["TFE_TOKEN"]
-}
-
 #################################
 ### Terraform                 ###
 #################################
 terraform {
-  cloud {
-    organization = "lingrino"
-
-    workspaces {
-      name = "aws-accounts-prod"
-    }
+  backend "s3" {
+    bucket              = "lingrino-prod-usw2-terraform-state"
+    key                 = "aws/accounts/prod/terraform.tfstate"
+    region              = "us-west-2"
+    use_lockfile        = true
+    profile             = "prod"
+    allowed_account_ids = ["840856573771"]
   }
 
   required_providers {
@@ -63,9 +59,6 @@ terraform {
     }
     tailscale = {
       source = "tailscale/tailscale"
-    }
-    tfe = {
-      source = "hashicorp/tfe"
     }
   }
 }

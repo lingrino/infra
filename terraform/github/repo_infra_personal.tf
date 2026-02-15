@@ -63,16 +63,6 @@ resource "github_repository_ruleset" "infra" {
 
       dynamic "required_check" {
         for_each = [
-          "Terraform Cloud/lingrino/aws-accounts-audit",
-          "Terraform Cloud/lingrino/aws-accounts-auth",
-          "Terraform Cloud/lingrino/aws-accounts-dev",
-          "Terraform Cloud/lingrino/aws-accounts-prod",
-          "Terraform Cloud/lingrino/aws-accounts-root",
-          "Terraform Cloud/lingrino/aws-common-organization",
-          "Terraform Cloud/lingrino/cloudflare",
-          "Terraform Cloud/lingrino/github",
-          "Terraform Cloud/lingrino/tailscale",
-          "Terraform Cloud/lingrino/terraform",
           "validate"
         ]
 

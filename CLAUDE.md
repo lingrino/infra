@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Personal infrastructure-as-code repository managing AWS accounts, Cloudflare, GitHub, Tailscale, and Terraform Cloud using Terraform.
+Personal infrastructure-as-code repository managing AWS accounts, Cloudflare, GitHub, Tailscale, and other services using Terraform.
 
 ## Commands
 
@@ -20,14 +20,13 @@ terraform fmt -recursive                  # Auto-format all files
 cd terraform/<workspace> && terraform init && terraform plan  # Plan changes locally
 ```
 
-Note: Plans require AWS credentials via profiles (root, prod, audit, auth, dev) or Terraform Cloud dynamic credentials.
+Note: Plans and applies are run locally. AWS credentials are provided via profiles (root, prod, audit, auth, dev). The `prod` profile is always required for state access (see State Management below).
 
 ## Architecture
 
-### Terraform Cloud Workspaces
-All infrastructure runs via Terraform Cloud (org: `lingrino`) with auto-apply on main branch. Each workspace maps to a directory under `terraform/`:
+### Workspaces
+Each workspace maps to a directory under `terraform/`. Plans and applies are run locally:
 
-- `terraform/terraform` - Manages TFC org, workspaces, and variable sets (bootstrap workspace)
 - `terraform/aws/accounts/{root,audit,auth,dev,prod}` - Per-account AWS resources
 - `terraform/aws/common/organization` - AWS Organization and member accounts
 - `terraform/cloudflare` - Cloudflare account and DNS
@@ -41,17 +40,17 @@ Located in `terraform-modules/`:
 - `s3` - S3 bucket with optional CloudFront distribution
 - `zone` - Route53 hosted zone
 
+### State Management
+Terraform state is stored in S3 in the prod account (`lingrino-prod-usw2-terraform-state`). All workspaces use `profile = "prod"` in their backend config for state access, separate from the provider credentials. State keys follow the pattern `<workspace-path>/terraform.tfstate` (e.g., `aws/accounts/dev/terraform.tfstate`). S3 native lock files are used for locking (`use_lockfile = true`).
+
 ### Secrets Management
 Provider credentials are stored in AWS Secrets Manager (prod account) and accessed via ephemeral data sources in `meta.tf` files. Pattern: `<service>/keys/terraform-cloud`.
-
-### Workspace Trigger Patterns
-Workspaces trigger on changes to their directory AND `terraform-modules/**/*.tf`, ensuring module updates propagate.
 
 ## File Naming Conventions
 
 ### Standard Files (present in every workspace)
 - `meta.tf` - Providers, terraform backend config, required_providers, remote state data sources
-- `variables.tf` - Input variables (typically just `tfc_aws_dynamic_credentials` for TFC integration)
+- `variables.tf` - Input variables
 - `data.tf` - Shared data sources and locals used across multiple resource files
 - `outputs.tf` - Module/workspace outputs
 - Resource files are named by `<service/category>_<resource_description>.tf`
@@ -75,11 +74,7 @@ Within `terraform-modules/<module>/`:
 - AWS provider `default_tags` adds `terraform = "true"` and `workspace = "<workspace-name>"`
 
 ### Provider Configuration
-- AWS providers use conditional logic for local vs TFC credentials:
-  ```hcl
-  profile             = !can(var.tfc_aws_dynamic_credentials.aliases["prod"]) ? "prod" : null
-  shared_config_files = try([var.tfc_aws_dynamic_credentials.aliases["prod"].shared_config_file], null)
-  ```
+- AWS providers use named profiles: `profile = "dev"`, `profile = "prod"`, etc.
 - Non-AWS providers fetch credentials from Secrets Manager via ephemeral data sources
 
 ### Section Comments

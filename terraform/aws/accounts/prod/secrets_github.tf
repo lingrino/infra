@@ -1,16 +1,16 @@
 #################################
 ### Terraform Cloud           ###
 #################################
-resource "aws_secretsmanager_secret" "github_keys_terraform_cloud" {
-  name = "github/keys/terraform-cloud"
+resource "aws_secretsmanager_secret" "github_keys_infra" {
+  name = "github/keys/infra"
 
   tags = {
-    Name = "github/keys/terraform-cloud"
+    Name = "github/keys/infra"
   }
 }
 
-ephemeral "aws_secretsmanager_secret_version" "github_keys_terraform_cloud" {
-  secret_id = aws_secretsmanager_secret.github_keys_terraform_cloud.id
+ephemeral "aws_secretsmanager_secret_version" "github_keys_infra" {
+  secret_id = aws_secretsmanager_secret.github_keys_infra.id
 }
 
 #################################

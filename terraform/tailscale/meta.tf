@@ -15,7 +15,7 @@ provider "aws" {
 }
 
 ephemeral "aws_secretsmanager_secret_version" "tailscale" {
-  secret_id = "tailscale/keys/terraform-cloud"
+  secret_id = "tailscale/keys/infra"
 }
 
 provider "tailscale" {

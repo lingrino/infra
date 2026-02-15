@@ -38,13 +38,13 @@ terraform {
 ### Remote State              ###
 #################################
 data "terraform_remote_state" "account_audit" {
-  backend = "remote"
+  backend = "s3"
 
   config = {
-    organization = "lingrino"
-
-    workspaces = {
-      name = "aws-accounts-audit"
-    }
+    bucket              = "lingrino-prod-usw2-terraform-state"
+    key                 = "aws/accounts/audit/terraform.tfstate"
+    region              = "us-west-2"
+    profile             = "prod"
+    allowed_account_ids = ["840856573771"]
   }
 }

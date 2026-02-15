@@ -14,31 +14,31 @@ ephemeral "aws_secretsmanager_secret_version" "cloudflare_keys_create_tokens" {
 }
 
 #################################
-### Terraform Cloud           ###
+### Infra                     ###
 #################################
-resource "aws_secretsmanager_secret" "cloudflare_keys_terraform_cloud" {
-  name = "cloudflare/keys/terraform-cloud"
+resource "aws_secretsmanager_secret" "cloudflare_keys_infra" {
+  name = "cloudflare/keys/infra"
 
   tags = {
-    Name = "cloudflare/keys/terraform-cloud"
+    Name = "cloudflare/keys/infra"
   }
 }
 
-ephemeral "aws_secretsmanager_secret_version" "cloudflare_keys_terraform_cloud" {
-  secret_id = aws_secretsmanager_secret.cloudflare_keys_terraform_cloud.id
+ephemeral "aws_secretsmanager_secret_version" "cloudflare_keys_infra" {
+  secret_id = aws_secretsmanager_secret.cloudflare_keys_infra.id
 }
 
-resource "aws_secretsmanager_secret_version" "cloudflare_keys_terraform_cloud" {
-  secret_id = aws_secretsmanager_secret.cloudflare_keys_terraform_cloud.id
+resource "aws_secretsmanager_secret_version" "cloudflare_keys_infra" {
+  secret_id = aws_secretsmanager_secret.cloudflare_keys_infra.id
   secret_string = jsonencode({
-    CLOUDFLARE_API_TOKEN = cloudflare_account_token.terraform_cloud.value,
+    CLOUDFLARE_API_TOKEN = cloudflare_account_token.infra.value,
   })
 }
 
-resource "cloudflare_account_token" "terraform_cloud" {
+resource "cloudflare_account_token" "infra" {
   provider = cloudflare.create-tokens
 
-  name       = "terraform-cloud"
+  name       = "infra"
   account_id = data.cloudflare_account.account.id
 
   policies = [

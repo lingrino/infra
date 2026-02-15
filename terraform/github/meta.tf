@@ -15,7 +15,7 @@ provider "aws" {
 }
 
 ephemeral "aws_secretsmanager_secret_version" "github" {
-  secret_id = "github/keys/terraform-cloud"
+  secret_id = "github/keys/infra"
 }
 
 provider "github" {

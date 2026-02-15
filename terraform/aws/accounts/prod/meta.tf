@@ -15,7 +15,7 @@ provider "aws" {
 }
 
 provider "cloudflare" {
-  api_token = jsondecode(ephemeral.aws_secretsmanager_secret_version.cloudflare_keys_terraform_cloud.secret_string)["CLOUDFLARE_API_TOKEN"]
+  api_token = jsondecode(ephemeral.aws_secretsmanager_secret_version.cloudflare_keys_infra.secret_string)["CLOUDFLARE_API_TOKEN"]
 }
 
 provider "cloudflare" {
@@ -25,7 +25,7 @@ provider "cloudflare" {
 
 provider "github" {
   owner = "lingrino"
-  token = jsondecode(ephemeral.aws_secretsmanager_secret_version.github_keys_terraform_cloud.secret_string)["GITHUB_TOKEN"]
+  token = jsondecode(ephemeral.aws_secretsmanager_secret_version.github_keys_infra.secret_string)["GITHUB_TOKEN"]
 }
 
 provider "tailscale" {

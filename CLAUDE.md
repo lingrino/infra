@@ -44,7 +44,7 @@ Located in `terraform-modules/`:
 Terraform state is stored in S3 in the prod account (`lingrino-prod-usw2-terraform-state`). All workspaces use `profile = "prod"` in their backend config for state access, separate from the provider credentials. State keys follow the pattern `<workspace-path>/terraform.tfstate` (e.g., `aws/accounts/dev/terraform.tfstate`). S3 native lock files are used for locking (`use_lockfile = true`).
 
 ### Secrets Management
-Provider credentials are stored in AWS Secrets Manager (prod account) and accessed via ephemeral data sources in `meta.tf` files. Pattern: `<service>/keys/terraform-cloud`.
+Provider credentials are stored in AWS Secrets Manager (prod account) and accessed via ephemeral data sources in `meta.tf` files. Pattern: `<service>/keys/<name>`.
 
 ## File Naming Conventions
 

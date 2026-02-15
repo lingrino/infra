@@ -109,14 +109,6 @@ else
     echo "${CHANGED_FILES}" | sed 's/^/  /'
 
     while IFS= read -r file; do
-      # CI/workflow changes affect all workspaces
-      if [[ "${file}" == .github/workflows/terraform-* ]] || [[ "${file}" == .github/scripts/* ]]; then
-        for ws in "${ALL_WS[@]}"; do
-          AFFECTED["${ws}"]=1
-        done
-        break
-      fi
-
       # Direct workspace file change
       for ws in "${ALL_WS[@]}"; do
         if [[ "${file}" == "${ws}/"* ]]; then

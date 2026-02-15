@@ -23,6 +23,6 @@ resource "tailscale_contacts" "contacts" {
   }
 
   support {
-    email = "sean@lingren.com"
+    email = "sean2@lingren.com" # TODO revert
   }
 }

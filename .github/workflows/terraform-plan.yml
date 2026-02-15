@@ -135,42 +135,27 @@ jobs:
             // Build markdown
             let body = '<!-- terraform-plan -->\n## Terraform Plan\n\n';
 
-            // Summary table
-            body += '| Workspace | Result |\n|---|---|\n';
             for (const plan of plans) {
-              let icon, label;
+              let icon, summary;
               switch (plan.exitcode) {
                 case 0:
-                  icon = ':white_check_mark:'; label = 'No changes'; break;
+                  icon = ':white_check_mark:'; summary = 'no changes'; break;
                 case 1:
-                  icon = ':x:'; label = 'Error'; break;
+                  icon = ':x:'; summary = 'error'; break;
                 case 2:
-                  icon = ':warning:'; label = 'Changes pending'; break;
-                default:
-                  icon = ':question:'; label = `Exit code ${plan.exitcode}`;
-              }
-              body += `| \`${plan.path}\` | ${icon} ${label} |\n`;
-            }
-
-            // Collapsible details
-            body += '\n';
-            for (const plan of plans) {
-              let summary;
-              switch (plan.exitcode) {
-                case 0: summary = 'no changes'; break;
-                case 1: summary = 'error'; break;
-                case 2:
+                  icon = ':warning:';
                   const match = (plan.output || '').match(/(\d+ to add, \d+ to change, \d+ to destroy)/);
                   summary = match ? match[1] : 'changes pending';
                   break;
-                default: summary = `exit code ${plan.exitcode}`;
+                default:
+                  icon = ':question:'; summary = `exit code ${plan.exitcode}`;
               }
               const output = (plan.output || 'No plan output available.').trim();
               const maxLen = 60000;
               const truncated = output.length > maxLen
                 ? output.substring(0, maxLen) + '\n\n... (truncated)'
                 : output;
-              body += `<details><summary><code>${plan.path}</code> — ${summary}</summary>\n\n\`\`\`\n${truncated}\n\`\`\`\n\n</details>\n\n`;
+              body += `<details><summary>${icon} <code>${plan.path}</code> — ${summary}</summary>\n\n\`\`\`\n${truncated}\n\`\`\`\n\n</details>\n\n`;
             }
 
             body += `_Run: [${context.workflow} #${context.runNumber}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})_\n`;

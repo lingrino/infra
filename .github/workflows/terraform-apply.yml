@@ -65,7 +65,7 @@ jobs:
 
       - name: setup aws profiles
         env:
-          AWS_ROOT_ACCOUNT_ID: ${{ vars.AWS_ROOT_ACCOUNT_ID }}
+          AWS_ROOT_ACCOUNT_ID: ${{ secrets.AWS_ROOT_ACCOUNT_ID }}
         run: .github/scripts/setup-aws-profiles.sh
 
       - name: terraform init

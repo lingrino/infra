@@ -38,6 +38,9 @@ terraform {
   }
 
   required_providers {
+    aws = {
+      source = "hashicorp/aws"
+    }
     tailscale = {
       source = "tailscale/tailscale"
     }

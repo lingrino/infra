@@ -31,5 +31,11 @@ terraform {
     aws = {
       source = "hashicorp/aws"
     }
+    null = {
+      source = "hashicorp/null"
+    }
+    tls = {
+      source = "hashicorp/tls"
+    }
   }
 }

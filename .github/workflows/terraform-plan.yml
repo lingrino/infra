@@ -5,33 +5,33 @@ on:
     types: [opened, synchronize]
   workflow_dispatch:
     inputs:
-      workspaces:
-        description: 'Comma-separated workspace paths (e.g. "terraform/github,terraform/cloudflare") or "all"'
-        required: false
-        default: 'all'
       ref:
-        description: 'Branch to plan'
+        description: branch to run against
         required: false
-        default: 'main'
-
-concurrency:
-  group: terraform-plan-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: true
+        default: main
+      workspaces:
+        description: comma separated workspace paths or "all" (e.g. "terraform/github,terraform/cloudflare")
+        required: false
+        default: all
 
 permissions:
   contents: read
   id-token: write
   pull-requests: write
 
+concurrency:
+  group: terraform-plan-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
-  detect:
+  detect-changes:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.detect.outputs.matrix }}
-      has_changes: ${{ steps.detect.outputs.has_changes }}
+      matrix: ${{ steps.detect-changes.outputs.matrix }}
+      has_changes: ${{ steps.detect-changes.outputs.has_changes }}
     steps:
       - name: checkout
         uses: actions/checkout@v6
@@ -39,7 +39,7 @@ jobs:
           fetch-depth: 0
 
       - name: detect changes
-        id: detect
+        id: detect-changes
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha || 'HEAD~1' }}
           ALL_WORKSPACES: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.workspaces == 'all') && 'true' || 'false' }}
@@ -47,39 +47,34 @@ jobs:
         run: .github/scripts/detect-changes.sh
 
   plan:
-    needs: detect
-    if: needs.detect.outputs.has_changes == 'true'
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        workspace: ${{ fromJson(needs.detect.outputs.matrix) }}
+        workspace: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
     steps:
       - name: checkout
         uses: actions/checkout@v6
-
       - name: install terraform
         uses: hashicorp/setup-terraform@v3.1.2
-
-      - name: setup aws profiles
+      - name: setup aws
+        run: .github/scripts/setup-aws-profiles.sh
         env:
           AWS_ACCOUNT_IDS: ${{ secrets.AWS_ACCOUNT_IDS }}
-        run: .github/scripts/setup-aws-profiles.sh
-
       - name: terraform init
-        working-directory: ${{ matrix.workspace.path }}
         run: terraform init -input=false
-
+        working-directory: ${{ matrix.workspace.path }}
       - name: terraform plan
         id: plan
-        working-directory: ${{ matrix.workspace.path }}
         run: |
           set +e
           set -o pipefail
           terraform plan -input=false -no-color -detailed-exitcode 2>&1 | tee plan.txt
           echo "exitcode=${PIPESTATUS[0]}" >> "${GITHUB_OUTPUT}"
+        working-directory: ${{ matrix.workspace.path }}
         continue-on-error: true
-
       - name: save plan result
         run: |
           SLUG=$(echo "${{ matrix.workspace.path }}" | tr '/' '-')
@@ -90,21 +85,19 @@ jobs:
             --arg output "$(cat "${{ matrix.workspace.path }}/plan.txt" 2>/dev/null || echo 'No plan output available.')" \
             '{path: $path, exitcode: ($exitcode | tonumber), output: $output}' \
             > "/tmp/plan-results/${SLUG}.json"
-
       - name: upload plan result
         uses: actions/upload-artifact@v4
         with:
           name: plan-result-${{ strategy.job-index }}
           path: /tmp/plan-results/
           retention-days: 7
-
       - name: fail on error
         if: steps.plan.outputs.exitcode == '1'
         run: exit 1
 
   comment:
-    needs: [detect, plan]
-    if: always() && github.event_name == 'pull_request' && needs.detect.outputs.has_changes == 'true'
+    needs: [detect-changes, plan]
+    if: always() && github.event_name == 'pull_request' && needs.detect-changes.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: download plan results
@@ -113,8 +106,7 @@ jobs:
           path: /tmp/artifacts
           pattern: plan-result-*
           merge-multiple: true
-
-      - name: post or update comment
+      - name: comment
         uses: actions/github-script@v7
         with:
           script: |

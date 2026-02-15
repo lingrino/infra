@@ -9,6 +9,10 @@ on:
         description: 'Comma-separated workspace paths (e.g. "terraform/github,terraform/cloudflare") or "all"'
         required: false
         default: 'all'
+      ref:
+        description: 'Branch to plan'
+        required: false
+        default: 'main'
 
 concurrency:
   group: terraform-plan-${{ github.event.pull_request.number || github.run_id }}

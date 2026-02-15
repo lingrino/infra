@@ -11,6 +11,10 @@ on:
         description: 'Comma-separated workspace paths (e.g. "terraform/github,terraform/cloudflare") or "all"'
         required: false
         default: 'all'
+      ref:
+        description: 'Branch to apply'
+        required: false
+        default: 'main'
       command:
         description: 'Command to run'
         required: false

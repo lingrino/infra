@@ -28,8 +28,7 @@ resource "aws_s3_bucket_ownership_controls" "s3" {
 
 # enforce object encryption
 resource "aws_s3_bucket_server_side_encryption_configuration" "s3" {
-  bucket                = aws_s3_bucket.s3.bucket
-  expected_bucket_owner = data.aws_caller_identity.s3.account_id
+  bucket = aws_s3_bucket.s3.bucket
 
   rule {
     apply_server_side_encryption_by_default {
@@ -40,9 +39,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "s3" {
 
 # enable transfer acceleration
 resource "aws_s3_bucket_accelerate_configuration" "s3" {
-  bucket                = aws_s3_bucket.s3.bucket
-  expected_bucket_owner = data.aws_caller_identity.s3.account_id
-  status                = "Enabled"
+  bucket = aws_s3_bucket.s3.bucket
+  status = "Enabled"
 }
 
 # enable bucket metrics
@@ -57,8 +55,7 @@ resource "aws_s3_bucket_metric" "s3" {
 resource "aws_s3_bucket_logging" "s3" {
   count = var.enable_logging ? 1 : 0
 
-  bucket                = aws_s3_bucket.s3.bucket
-  expected_bucket_owner = data.aws_caller_identity.s3.account_id
+  bucket = aws_s3_bucket.s3.bucket
 
   target_bucket = "${data.aws_iam_account_alias.s3.id}-usw2-s3-logs"
   target_prefix = ""
@@ -72,8 +69,7 @@ resource "aws_s3_bucket_logging" "s3" {
 
 # enable versioning
 resource "aws_s3_bucket_versioning" "s3" {
-  bucket                = aws_s3_bucket.s3.bucket
-  expected_bucket_owner = data.aws_caller_identity.s3.account_id
+  bucket = aws_s3_bucket.s3.bucket
 
   versioning_configuration {
     status = var.enable_versioning ? "Enabled" : "Suspended"
@@ -84,8 +80,7 @@ resource "aws_s3_bucket_versioning" "s3" {
 resource "aws_s3_bucket_object_lock_configuration" "s3" {
   count = var.enable_object_lock ? 1 : 0
 
-  bucket                = aws_s3_bucket_versioning.s3.bucket
-  expected_bucket_owner = data.aws_caller_identity.s3.account_id
+  bucket = aws_s3_bucket_versioning.s3.bucket
 
   rule {
     default_retention {

@@ -1,0 +1,199 @@
+name: terraform plan
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+    inputs:
+      workspaces:
+        description: 'Comma-separated workspace paths (e.g. "terraform/github,terraform/cloudflare") or "all"'
+        required: false
+        default: 'all'
+
+concurrency:
+  group: terraform-plan-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.detect.outputs.matrix }}
+      has_changes: ${{ steps.detect.outputs.has_changes }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: detect changes
+        id: detect
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || 'HEAD~1' }}
+          ALL_WORKSPACES: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.workspaces == 'all') && 'true' || 'false' }}
+          FILTER: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.workspaces != 'all') && github.event.inputs.workspaces || '' }}
+        run: .github/scripts/detect-changes.sh
+
+  plan:
+    needs: detect
+    if: needs.detect.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: ${{ fromJson(needs.detect.outputs.matrix) }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+
+      - name: install terraform
+        uses: hashicorp/setup-terraform@v3.1.2
+
+      - name: setup aws profiles
+        env:
+          AWS_ROOT_ACCOUNT_ID: ${{ vars.AWS_ROOT_ACCOUNT_ID }}
+        run: .github/scripts/setup-aws-profiles.sh
+
+      - name: terraform init
+        working-directory: ${{ matrix.workspace.path }}
+        run: terraform init -input=false
+
+      - name: terraform plan
+        id: plan
+        working-directory: ${{ matrix.workspace.path }}
+        run: |
+          set +e
+          set -o pipefail
+          terraform plan -input=false -no-color -detailed-exitcode 2>&1 | tee plan.txt
+          echo "exitcode=${PIPESTATUS[0]}" >> "${GITHUB_OUTPUT}"
+        continue-on-error: true
+
+      - name: save plan result
+        run: |
+          SLUG=$(echo "${{ matrix.workspace.path }}" | tr '/' '-')
+          mkdir -p /tmp/plan-results
+          jq -n \
+            --arg path "${{ matrix.workspace.path }}" \
+            --arg exitcode "${{ steps.plan.outputs.exitcode }}" \
+            --arg output "$(cat "${{ matrix.workspace.path }}/plan.txt" 2>/dev/null || echo 'No plan output available.')" \
+            '{path: $path, exitcode: ($exitcode | tonumber), output: $output}' \
+            > "/tmp/plan-results/${SLUG}.json"
+
+      - name: upload plan result
+        uses: actions/upload-artifact@v4
+        with:
+          name: plan-result-${{ strategy.job-index }}
+          path: /tmp/plan-results/
+          retention-days: 7
+
+      - name: fail on error
+        if: steps.plan.outputs.exitcode == '1'
+        run: exit 1
+
+  comment:
+    needs: [detect, plan]
+    if: always() && github.event_name == 'pull_request' && needs.detect.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: download plan results
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/artifacts
+          pattern: plan-result-*
+          merge-multiple: true
+
+      - name: post or update comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            // Read all plan result JSON files
+            const artifactsDir = '/tmp/artifacts';
+            const plans = [];
+
+            if (fs.existsSync(artifactsDir)) {
+              for (const file of fs.readdirSync(artifactsDir)) {
+                if (file.endsWith('.json')) {
+                  const data = JSON.parse(fs.readFileSync(path.join(artifactsDir, file), 'utf8'));
+                  plans.push(data);
+                }
+              }
+            }
+
+            plans.sort((a, b) => a.path.localeCompare(b.path));
+
+            // Build markdown
+            let body = '<!-- terraform-plan -->\n## Terraform Plan\n\n';
+
+            // Summary table
+            body += '| Workspace | Result |\n|---|---|\n';
+            for (const plan of plans) {
+              let icon, label;
+              switch (plan.exitcode) {
+                case 0:
+                  icon = ':white_check_mark:'; label = 'No changes'; break;
+                case 1:
+                  icon = ':x:'; label = 'Error'; break;
+                case 2:
+                  icon = ':warning:'; label = 'Changes pending'; break;
+                default:
+                  icon = ':question:'; label = `Exit code ${plan.exitcode}`;
+              }
+              body += `| \`${plan.path}\` | ${icon} ${label} |\n`;
+            }
+
+            // Collapsible details
+            body += '\n';
+            for (const plan of plans) {
+              let summary;
+              switch (plan.exitcode) {
+                case 0: summary = 'no changes'; break;
+                case 1: summary = 'error'; break;
+                case 2:
+                  const match = (plan.output || '').match(/(\d+ to add, \d+ to change, \d+ to destroy)/);
+                  summary = match ? match[1] : 'changes pending';
+                  break;
+                default: summary = `exit code ${plan.exitcode}`;
+              }
+              const output = (plan.output || 'No plan output available.').trim();
+              const maxLen = 60000;
+              const truncated = output.length > maxLen
+                ? output.substring(0, maxLen) + '\n\n... (truncated)'
+                : output;
+              body += `<details><summary><code>${plan.path}</code> — ${summary}</summary>\n\n\`\`\`\n${truncated}\n\`\`\`\n\n</details>\n\n`;
+            }
+
+            body += `_Run: [${context.workflow} #${context.runNumber}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})_\n`;
+
+            // Find existing comment
+            const marker = '<!-- terraform-plan -->';
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+            }

@@ -1,0 +1,83 @@
+name: terraform apply
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 15 * * 1' # Monday 7am PT / 15:00 UTC
+  workflow_dispatch:
+    inputs:
+      workspaces:
+        description: 'Comma-separated workspace paths (e.g. "terraform/github,terraform/cloudflare") or "all"'
+        required: false
+        default: 'all'
+      command:
+        description: 'Command to run'
+        required: false
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - plan
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.detect.outputs.matrix }}
+      has_changes: ${{ steps.detect.outputs.has_changes }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: detect changes
+        id: detect
+        env:
+          BASE_REF: ${{ github.event.before || 'HEAD~1' }}
+          ALL_WORKSPACES: ${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.workspaces == 'all')) && 'true' || 'false' }}
+          FILTER: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.workspaces != 'all') && github.event.inputs.workspaces || '' }}
+        run: .github/scripts/detect-changes.sh
+
+  run:
+    needs: detect
+    if: needs.detect.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        workspace: ${{ fromJson(needs.detect.outputs.matrix) }}
+    concurrency:
+      group: terraform-apply-${{ matrix.workspace.path }}
+      cancel-in-progress: false
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+
+      - name: install terraform
+        uses: hashicorp/setup-terraform@v3.1.2
+
+      - name: setup aws profiles
+        env:
+          AWS_ROOT_ACCOUNT_ID: ${{ vars.AWS_ROOT_ACCOUNT_ID }}
+        run: .github/scripts/setup-aws-profiles.sh
+
+      - name: terraform init
+        working-directory: ${{ matrix.workspace.path }}
+        run: terraform init -input=false
+
+      - name: terraform plan
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.command == 'plan'
+        working-directory: ${{ matrix.workspace.path }}
+        run: terraform plan -input=false
+
+      - name: terraform apply
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.command == 'apply'
+        working-directory: ${{ matrix.workspace.path }}
+        run: terraform apply -input=false -auto-approve

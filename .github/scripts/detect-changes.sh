@@ -98,8 +98,14 @@ if [[ "${ALL_WORKSPACES:-false}" == "true" ]]; then
     AFFECTED["${ws}"]=1
   done
 else
+  # Verify base ref exists
+  if ! git cat-file -e "${BASE_REF:-origin/main}^{commit}" 2>/dev/null; then
+    echo "::error::BASE_REF '${BASE_REF:-origin/main}' does not exist"
+    exit 1
+  fi
+
   # Get changed files
-  CHANGED_FILES=$(git diff --name-only "${BASE_REF:-origin/main}" 2>/dev/null || true)
+  CHANGED_FILES=$(git diff --name-only "${BASE_REF:-origin/main}")
 
   if [[ -z "${CHANGED_FILES}" ]]; then
     echo "No changed files detected."

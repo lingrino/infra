@@ -39,6 +39,7 @@ CONFIG_FILE=~/.aws/config
 
 echo "Generating ${CONFIG_FILE}..."
 : > "${CONFIG_FILE}"
+chmod 600 "${CONFIG_FILE}"
 
 echo "${AWS_ACCOUNT_IDS}" | jq -r 'to_entries[] | "\(.key)\t\(.value)"' | while IFS=$'\t' read -r name id; do
   cat >> "${CONFIG_FILE}" <<EOF

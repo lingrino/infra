@@ -102,14 +102,17 @@ jobs:
         working-directory: ${{ matrix.workspace.path }}
         continue-on-error: true
       - name: save result
+        env:
+          TF_STDOUT: ${{ steps.terraform.outputs.stdout }}
+          TF_EXITCODE: ${{ steps.terraform.outputs.exitcode }}
         run: |
           SLUG=$(echo "${{ matrix.workspace.path }}" | tr '/' '-')
           mkdir -p /tmp/results
           jq -n \
             --arg path "${{ matrix.workspace.path }}" \
             --arg command "${{ needs.setup.outputs.command }}" \
-            --arg exitcode "${{ steps.terraform.outputs.exitcode }}" \
-            --arg output "${{ steps.terraform.outputs.stdout }}" \
+            --arg exitcode "${TF_EXITCODE}" \
+            --arg output "${TF_STDOUT}" \
             '{path: $path, command: $command, exitcode: ($exitcode | tonumber), output: $output}' \
             > "/tmp/results/${SLUG}.json"
       - name: upload result

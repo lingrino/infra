@@ -63,7 +63,8 @@ resource "github_repository_ruleset" "infra" {
 
       dynamic "required_check" {
         for_each = [
-          "validate"
+          "validate",
+          "status",
         ]
 
         content {

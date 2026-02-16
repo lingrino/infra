@@ -212,3 +212,14 @@ jobs:
                 body: body,
               });
             }
+
+  status:
+    needs: [setup, run, comment]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: check result
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            exit 1
+          fi

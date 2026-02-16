@@ -48,7 +48,7 @@ data "aws_iam_policy_document" "arp_github_actions" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:lingrino/*:ref:*"]
+      values   = ["repo:lingrino/infra:ref:*", "repo:lingrino/infra:pull_request"]
     }
   }
 }

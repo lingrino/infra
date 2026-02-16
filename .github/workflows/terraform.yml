@@ -1,0 +1,226 @@
+name: terraform
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+  schedule:
+    - cron: "0 17 * * 1" # monday 9am pt
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: branch to run against
+        required: false
+        default: main
+      command:
+        description: command to run
+        required: false
+        default: plan
+        type: choice
+        options:
+          - plan
+          - apply
+      workspaces:
+        description: comma separated workspace paths or "all" (e.g. "terraform/github,terraform/cloudflare")
+        required: false
+        default: all
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: terraform-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: determine command
+        id: command
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "command=plan" >> "${GITHUB_OUTPUT}"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "command=${{ github.event.inputs.command }}" >> "${GITHUB_OUTPUT}"
+          elif [[ "${{ github.event_name }}" == "push" || "${{ github.event_name }}" == "schedule" ]]; then
+            echo "command=apply" >> "${GITHUB_OUTPUT}"
+          else
+            echo "::error::unexpected event: ${{ github.event_name }}"
+            exit 1
+          fi
+      - name: detect changes
+        id: changes
+        run: .github/scripts/detect-changes.sh
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD~1' }}
+          ALL_WORKSPACES: ${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.workspaces == 'all')) && 'true' || 'false' }}
+          FILTER: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.workspaces != 'all') && github.event.inputs.workspaces || '' }}
+    outputs:
+      command: ${{ steps.command.outputs.command }}
+      matrix: ${{ steps.changes.outputs.matrix }}
+      has_changes: ${{ steps.changes.outputs.has_changes }}
+
+  run:
+    needs: setup
+    if: needs.setup.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: ${{ fromJson(needs.setup.outputs.matrix) }}
+    concurrency:
+      group: terraform-apply-${{ matrix.workspace.path }}
+      cancel-in-progress: false
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+      - name: install terraform
+        uses: hashicorp/setup-terraform@v3.1.2
+      - name: setup aws
+        run: .github/scripts/setup-aws-profiles.sh
+        env:
+          AWS_ACCOUNT_IDS: ${{ secrets.AWS_ACCOUNT_IDS }}
+      - name: terraform init
+        run: terraform init -input=false
+        working-directory: ${{ matrix.workspace.path }}
+      - name: terraform ${{ needs.setup.outputs.command }}
+        id: terraform
+        run: |
+          if [[ "${{ needs.setup.outputs.command }}" == "plan" ]]; then
+            terraform plan -input=false -no-color -detailed-exitcode
+          else
+            terraform apply -input=false -auto-approve -no-color
+          fi
+        working-directory: ${{ matrix.workspace.path }}
+        continue-on-error: true
+      - name: save result
+        env:
+          TF_STDOUT: ${{ steps.terraform.outputs.stdout }}
+          TF_EXITCODE: ${{ steps.terraform.outputs.exitcode }}
+        run: |
+          SLUG=$(echo "${{ matrix.workspace.path }}" | tr '/' '-')
+          mkdir -p /tmp/results
+          jq -n \
+            --arg path "${{ matrix.workspace.path }}" \
+            --arg command "${{ needs.setup.outputs.command }}" \
+            --arg exitcode "${TF_EXITCODE}" \
+            --arg output "${TF_STDOUT}" \
+            '{path: $path, command: $command, exitcode: ($exitcode | tonumber), output: $output}' \
+            > "/tmp/results/${SLUG}.json"
+      - name: upload result
+        uses: actions/upload-artifact@v6
+        with:
+          name: result-${{ strategy.job-index }}
+          path: /tmp/results/
+          retention-days: 7
+      - name: fail on error
+        if: >-
+          (needs.setup.outputs.command == 'plan' && steps.terraform.outputs.exitcode == '1') ||
+          (needs.setup.outputs.command == 'apply' && steps.terraform.outputs.exitcode != '0')
+        run: exit 1
+
+  comment:
+    needs: [setup, run]
+    if: always() && github.event_name == 'pull_request' && needs.setup.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: download plan results
+        uses: actions/download-artifact@v7
+        with:
+          path: /tmp/artifacts
+          pattern: result-*
+          merge-multiple: true
+      - name: comment
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            // Read all plan result JSON files
+            const artifactsDir = '/tmp/artifacts';
+            const plans = [];
+
+            if (fs.existsSync(artifactsDir)) {
+              for (const file of fs.readdirSync(artifactsDir)) {
+                if (file.endsWith('.json')) {
+                  const data = JSON.parse(fs.readFileSync(path.join(artifactsDir, file), 'utf8'));
+                  plans.push(data);
+                }
+              }
+            }
+
+            plans.sort((a, b) => a.path.localeCompare(b.path));
+
+            // Build markdown
+            let body = '<!-- terraform-plan -->\n## Terraform Plan\n\n';
+
+            for (const plan of plans) {
+              let icon, summary;
+              switch (plan.exitcode) {
+                case 0:
+                  icon = ':white_check_mark:'; summary = 'no changes'; break;
+                case 1:
+                  icon = ':x:'; summary = 'error'; break;
+                case 2:
+                  icon = ':warning:';
+                  const match = (plan.output || '').match(/(\d+ to add, \d+ to change, \d+ to destroy)/);
+                  summary = match ? match[1] : 'changes pending';
+                  break;
+                default:
+                  icon = ':question:'; summary = `exit code ${plan.exitcode}`;
+              }
+              const output = (plan.output || 'No plan output available.').trim();
+              const maxLen = 60000;
+              const truncated = output.length > maxLen
+                ? output.substring(0, maxLen) + '\n\n... (truncated)'
+                : output;
+              body += `<details><summary>${icon} <code>${plan.path}</code> — ${summary}</summary>\n\n\`\`\`\n${truncated}\n\`\`\`\n\n</details>\n\n`;
+            }
+
+            body += `_Run: [${context.workflow} #${context.runNumber}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})_\n`;
+
+            // Find existing comment
+            const marker = '<!-- terraform-plan -->';
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+            }
+
+  status:
+    needs: [setup, run, comment]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: check result
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            exit 1
+          fi

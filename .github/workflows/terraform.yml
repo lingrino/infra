@@ -94,13 +94,11 @@ jobs:
       - name: terraform ${{ needs.setup.outputs.command }}
         id: terraform
         run: |
-          set +e -o pipefail
           if [[ "${{ needs.setup.outputs.command }}" == "plan" ]]; then
-            terraform plan -input=false -no-color -detailed-exitcode 2>&1 | tee output.txt
+            terraform plan -input=false -no-color -detailed-exitcode
           else
-            terraform apply -input=false -auto-approve -no-color 2>&1 | tee output.txt
+            terraform apply -input=false -auto-approve -no-color
           fi
-          echo "exitcode=${PIPESTATUS[0]}" >> "${GITHUB_OUTPUT}"
         working-directory: ${{ matrix.workspace.path }}
         continue-on-error: true
       - name: save result
@@ -111,7 +109,7 @@ jobs:
             --arg path "${{ matrix.workspace.path }}" \
             --arg command "${{ needs.setup.outputs.command }}" \
             --arg exitcode "${{ steps.terraform.outputs.exitcode }}" \
-            --arg output "$(cat "${{ matrix.workspace.path }}/output.txt" 2>/dev/null || echo 'no output available')" \
+            --arg output "${{ steps.terraform.outputs.stdout }}" \
             '{path: $path, command: $command, exitcode: ($exitcode | tonumber), output: $output}' \
             > "/tmp/results/${SLUG}.json"
       - name: upload result

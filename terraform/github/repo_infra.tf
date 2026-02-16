@@ -69,7 +69,7 @@ resource "github_repository_ruleset" "infra" {
 
         content {
           context        = required_check.value
-          integration_id = 0
+          integration_id = 15368 # github actions
         }
       }
     }

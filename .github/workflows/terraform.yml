@@ -1,14 +1,26 @@
-name: terraform plan
+name: terraform
 
 on:
+  push:
+    branches: [main]
   pull_request:
     types: [opened, synchronize]
+  schedule:
+    - cron: "0 17 * * 1" # monday 9am pt
   workflow_dispatch:
     inputs:
       ref:
         description: branch to run against
         required: false
         default: main
+      command:
+        description: command to run
+        required: false
+        default: plan
+        type: choice
+        options:
+          - plan
+          - apply
       workspaces:
         description: comma separated workspace paths or "all" (e.g. "terraform/github,terraform/cloudflare")
         required: false
@@ -20,40 +32,53 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: terraform-plan-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: true
+  group: terraform-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  detect-changes:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event.pull_request.head.repo.full_name == github.repository
+  setup:
     runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.detect-changes.outputs.matrix }}
-      has_changes: ${{ steps.detect-changes.outputs.has_changes }}
     steps:
       - name: checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
+      - name: determine command
+        id: command
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "command=plan" >> "${GITHUB_OUTPUT}"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "command=${{ github.event.inputs.command }}" >> "${GITHUB_OUTPUT}"
+          elif [[ "${{ github.event_name }}" == "push" || "${{ github.event_name }}" == "schedule" ]]; then
+            echo "command=apply" >> "${GITHUB_OUTPUT}"
+          else
+            echo "::error::unexpected event: ${{ github.event_name }}"
+            exit 1
+          fi
       - name: detect changes
-        id: detect-changes
-        env:
-          BASE_REF: ${{ github.event.pull_request.base.sha || 'HEAD~1' }}
-          ALL_WORKSPACES: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.workspaces == 'all') && 'true' || 'false' }}
-          FILTER: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.workspaces != 'all') && github.event.inputs.workspaces || '' }}
+        id: changes
         run: .github/scripts/detect-changes.sh
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD~1' }}
+          ALL_WORKSPACES: ${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.workspaces == 'all')) && 'true' || 'false' }}
+          FILTER: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.workspaces != 'all') && github.event.inputs.workspaces || '' }}
+    outputs:
+      command: ${{ steps.command.outputs.command }}
+      matrix: ${{ steps.changes.outputs.matrix }}
+      has_changes: ${{ steps.changes.outputs.has_changes }}
 
-  plan:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.has_changes == 'true'
+  run:
+    needs: setup
+    if: needs.setup.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        workspace: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+        workspace: ${{ fromJson(needs.setup.outputs.matrix) }}
+    concurrency:
+      group: terraform-apply-${{ matrix.workspace.path }}
+      cancel-in-progress: false
     steps:
       - name: checkout
         uses: actions/checkout@v6
@@ -66,45 +91,51 @@ jobs:
       - name: terraform init
         run: terraform init -input=false
         working-directory: ${{ matrix.workspace.path }}
-      - name: terraform plan
-        id: plan
+      - name: terraform ${{ needs.setup.outputs.command }}
+        id: terraform
         run: |
-          set +e
-          set -o pipefail
-          terraform plan -input=false -no-color -detailed-exitcode 2>&1 | tee plan.txt
+          set +e -o pipefail
+          if [[ "${{ needs.setup.outputs.command }}" == "plan" ]]; then
+            terraform plan -input=false -no-color -detailed-exitcode 2>&1 | tee output.txt
+          else
+            terraform apply -input=false -auto-approve -no-color 2>&1 | tee output.txt
+          fi
           echo "exitcode=${PIPESTATUS[0]}" >> "${GITHUB_OUTPUT}"
         working-directory: ${{ matrix.workspace.path }}
         continue-on-error: true
-      - name: save plan result
+      - name: save result
         run: |
           SLUG=$(echo "${{ matrix.workspace.path }}" | tr '/' '-')
-          mkdir -p /tmp/plan-results
+          mkdir -p /tmp/results
           jq -n \
             --arg path "${{ matrix.workspace.path }}" \
-            --arg exitcode "${{ steps.plan.outputs.exitcode }}" \
-            --arg output "$(cat "${{ matrix.workspace.path }}/plan.txt" 2>/dev/null || echo 'No plan output available.')" \
-            '{path: $path, exitcode: ($exitcode | tonumber), output: $output}' \
-            > "/tmp/plan-results/${SLUG}.json"
-      - name: upload plan result
+            --arg command "${{ needs.setup.outputs.command }}" \
+            --arg exitcode "${{ steps.terraform.outputs.exitcode }}" \
+            --arg output "$(cat "${{ matrix.workspace.path }}/output.txt" 2>/dev/null || echo 'no output available')" \
+            '{path: $path, command: $command, exitcode: ($exitcode | tonumber), output: $output}' \
+            > "/tmp/results/${SLUG}.json"
+      - name: upload result
         uses: actions/upload-artifact@v6
         with:
-          name: plan-result-${{ strategy.job-index }}
-          path: /tmp/plan-results/
+          name: result-${{ strategy.job-index }}
+          path: /tmp/results/
           retention-days: 7
       - name: fail on error
-        if: steps.plan.outputs.exitcode == '1'
+        if: >-
+          (needs.setup.outputs.command == 'plan' && steps.terraform.outputs.exitcode == '1') ||
+          (needs.setup.outputs.command == 'apply' && steps.terraform.outputs.exitcode != '0')
         run: exit 1
 
   comment:
-    needs: [detect-changes, plan]
-    if: always() && github.event_name == 'pull_request' && needs.detect-changes.outputs.has_changes == 'true'
+    needs: [setup, run]
+    if: always() && github.event_name == 'pull_request' && needs.setup.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: download plan results
         uses: actions/download-artifact@v7
         with:
           path: /tmp/artifacts
-          pattern: plan-result-*
+          pattern: result-*
           merge-multiple: true
       - name: comment
         uses: actions/github-script@v8

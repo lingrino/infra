@@ -53,3 +53,48 @@ resource "cloudflare_ruleset" "redirect_lingren_dev_to_seanlingren_com" {
     }
   ]
 }
+
+#################################
+### resend                    ###
+#################################
+resource "cloudflare_dns_record" "txt_dmarc_lingren_dev" {
+  zone_id = module.zone_lingren_dev.id
+  name    = "_dmarc.lingren.dev"
+  type    = "TXT"
+  ttl     = 1
+  content = "v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s; pct=100; rua=mailto:sean+dmarc@lingren.com"
+}
+
+resource "cloudflare_dns_record" "mx_updates_lingren_dev" {
+  zone_id  = module.zone_lingren_dev.id
+  name     = "updates.lingren.dev"
+  type     = "MX"
+  ttl      = 1
+  priority = 10
+  content  = "inbound-smtp.us-east-1.amazonaws.com"
+}
+
+resource "cloudflare_dns_record" "mx_send_updates_lingren_dev" {
+  zone_id  = module.zone_lingren_dev.id
+  name     = "send.updates.lingren.dev"
+  type     = "MX"
+  ttl      = 1
+  priority = 10
+  content  = "feedback-smtp.us-east-1.amazonses.com"
+}
+
+resource "cloudflare_dns_record" "txt_send_updates_lingren_dev" {
+  zone_id = module.zone_lingren_dev.id
+  name    = "send.updates.lingren.dev"
+  type    = "TXT"
+  ttl     = 1
+  content = "v=spf1 include:amazonses.com ~all"
+}
+
+resource "cloudflare_dns_record" "txt_resend_domainkey_updates_lingren_dev" {
+  zone_id = module.zone_lingren_dev.id
+  name    = "resend._domainkey.updates.lingren.dev"
+  type    = "TXT"
+  ttl     = 1
+  content = "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDrySM7GcHIsXD833voXT/L2tCsVls9UyGifYPY78fpSWxGYVoA5FWAueKiheqsMngSPgExR4WuiDHdrluwA1iVKRIMGDspFqheZVYYNWH4GPAG2Sp27ibVIJU7Onz/0xmS8ecVPUvwM8JcqhFS2R8w5TEJpkmN0mujEHLgzBKltQIDAQAB"
+}

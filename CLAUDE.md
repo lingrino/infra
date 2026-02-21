@@ -66,7 +66,7 @@ Within `terraform-modules/<module>/`:
 
 ### Resource Naming
 - Resource names use the logical identifier without redundant prefixes: `aws_s3_bucket.s3`, not `aws_s3_bucket.my_bucket`
-- When a file contains multiple related resources, they share a common suffix: `aws_iam_user.backup_arq_mini`, `aws_iam_policy.backup_arq_mini`
+- When a file contains multiple related resources, they share a common suffix: `aws_iam_user.backup_mini`, `aws_iam_policy.backup_mini`
 - IAM users for services use path `/service/`
 
 ### Tags

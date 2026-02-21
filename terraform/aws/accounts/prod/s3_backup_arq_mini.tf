@@ -51,11 +51,7 @@ data "aws_iam_policy_document" "backup_mini" {
   statement {
     actions = [
       "s3:ListBucket",
-      "s3:ListBucketVersions",
       "s3:GetBucketLocation",
-      "s3:GetBucketVersioning",
-      "s3:GetBucketObjectLockConfiguration",
-      "s3:GetLifecycleConfiguration",
     ]
 
     resources = [module.s3_backup_mini.arn]

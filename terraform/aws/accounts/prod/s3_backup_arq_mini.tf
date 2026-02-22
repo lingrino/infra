@@ -3,7 +3,6 @@ module "s3_backup_mini" {
 
   name = "lingrino-prod-usw2-backup-mini"
 
-  enable_object_lock         = true
   enable_intelligent_tiering = false
 }
 

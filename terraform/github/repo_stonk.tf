@@ -1,6 +1,5 @@
 resource "github_repository" "stonk" {
-  name         = "stonk"
-  homepage_url = ""
+  name = "stonk"
 
   visibility = "private"
 

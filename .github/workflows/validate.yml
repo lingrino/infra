@@ -12,7 +12,7 @@ jobs:
       - name: install terraform
         uses: hashicorp/setup-terraform@v4.0.0
       - name: install tflint
-        uses: terraform-linters/setup-tflint@v6.2.1
+        uses: terraform-linters/setup-tflint@v6.2.2
         with:
           github-token: ${{ secrets.TFLINT_GITHUB_TOKEN }}
       - name: checkout

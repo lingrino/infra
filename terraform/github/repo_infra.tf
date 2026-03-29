@@ -62,10 +62,7 @@ resource "github_repository_ruleset" "infra" {
       strict_required_status_checks_policy = true
 
       dynamic "required_check" {
-        for_each = [
-          "validate",
-          "status",
-        ]
+        for_each = ["validate", "status"]
 
         content {
           context        = required_check.value

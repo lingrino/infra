@@ -1,6 +1,6 @@
-resource "github_repository" "vaku" {
-  name         = "vaku"
-  description  = "vaku extends the vault api & cli"
+resource "github_repository" "agent_archiver" {
+  name         = "agent-archiver"
+  description  = "export sites to markdown"
   homepage_url = "https://seanlingren.com"
 
   visibility = "public"
@@ -28,19 +28,19 @@ resource "github_repository" "vaku" {
   }
 }
 
-resource "github_branch" "vaku" {
-  repository = github_repository.vaku.name
+resource "github_branch" "agent_archiver" {
+  repository = github_repository.agent_archiver.name
   branch     = "main"
 }
 
-resource "github_branch_default" "vaku" {
-  repository = github_repository.vaku.name
-  branch     = github_branch.vaku.branch
+resource "github_branch_default" "agent_archiver" {
+  repository = github_repository.agent_archiver.name
+  branch     = github_branch.agent_archiver.branch
 }
 
-resource "github_repository_ruleset" "vaku" {
+resource "github_repository_ruleset" "agent_archiver" {
   name        = "main"
-  repository  = github_repository.vaku.name
+  repository  = github_repository.agent_archiver.name
   target      = "branch"
   enforcement = "active"
 
@@ -63,7 +63,7 @@ resource "github_repository_ruleset" "vaku" {
       strict_required_status_checks_policy = true
 
       dynamic "required_check" {
-        for_each = ["docs", "golangci", "gomod", "goreleaser", "test"]
+        for_each = ["lint", "test"]
 
         content {
           context        = required_check.value
@@ -74,8 +74,8 @@ resource "github_repository_ruleset" "vaku" {
   }
 }
 
-resource "github_actions_repository_permissions" "vaku" {
-  repository      = github_repository.vaku.name
+resource "github_actions_repository_permissions" "agent_archiver" {
+  repository      = github_repository.agent_archiver.name
   allowed_actions = "selected"
 
   allowed_actions_config {

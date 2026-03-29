@@ -40,6 +40,12 @@ data "aws_secretsmanager_secret_version" "github_keys_tflint" {
   secret_id = aws_secretsmanager_secret.github_keys_tflint.id
 }
 
+resource "github_actions_secret" "agent_archiver_goreleaser" {
+  repository      = "agent-archiver"
+  secret_name     = "GORELEASER_GITHUB_TOKEN"
+  plaintext_value = jsondecode(data.aws_secretsmanager_secret_version.github_keys_goreleaser.secret_string)["GORELEASER_GITHUB_TOKEN"]
+}
+
 resource "github_actions_secret" "vaku_goreleaser" {
   repository      = "vaku"
   secret_name     = "GORELEASER_GITHUB_TOKEN"

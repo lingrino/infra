@@ -63,11 +63,11 @@ resource "github_repository_ruleset" "agent_archiver" {
       strict_required_status_checks_policy = true
 
       dynamic "required_check" {
-        for_each = ["docs", "golangci", "gomod", "goreleaser", "test"]
+        for_each = ["lint", "test"]
 
         content {
           context        = required_check.value
-          integration_id = 0
+          integration_id = 15368
         }
       }
     }

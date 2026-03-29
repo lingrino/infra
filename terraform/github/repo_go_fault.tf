@@ -67,7 +67,7 @@ resource "github_repository_ruleset" "go_fault" {
 
         content {
           context        = required_check.value
-          integration_id = 0
+          integration_id = 15368
         }
       }
     }

@@ -63,11 +63,20 @@ resource "github_repository_ruleset" "uptime" {
       strict_required_status_checks_policy = true
 
       dynamic "required_check" {
-        for_each = ["Cloudflare Pages", "format", "lint", "test"]
+        for_each = ["format", "lint", "test"]
 
         content {
           context        = required_check.value
-          integration_id = 0
+          integration_id = 15368
+        }
+      }
+
+      dynamic "required_check" {
+        for_each = ["Cloudflare Pages"]
+
+        content {
+          context        = required_check.value
+          integration_id = 85455
         }
       }
     }

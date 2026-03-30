@@ -7,7 +7,7 @@ resource "aws_secretsmanager_secret" "apps_agent_archiver_production" {
 }
 
 data "aws_secretsmanager_secret_version" "apps_agent_archiver_production" {
-  secret_id = "apps/agent-archiver/production"
+  secret_id = aws_secretsmanager_secret.apps_agent_archiver_production.id
 }
 
 resource "aws_secretsmanager_secret_version" "apps_agent_archiver_production" {

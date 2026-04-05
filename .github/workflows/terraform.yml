@@ -108,12 +108,11 @@ jobs:
         run: |
           SLUG=$(echo "${{ matrix.workspace.path }}" | tr '/' '-')
           mkdir -p /tmp/results
-          jq -n \
+          printenv TF_STDOUT | jq -Rs \
             --arg path "${{ matrix.workspace.path }}" \
             --arg command "${{ needs.setup.outputs.command }}" \
             --arg exitcode "${TF_EXITCODE}" \
-            --arg output "${TF_STDOUT}" \
-            '{path: $path, command: $command, exitcode: ($exitcode | tonumber), output: $output}' \
+            '{path: $path, command: $command, exitcode: ($exitcode | tonumber), output: .}' \
             > "/tmp/results/${SLUG}.json"
       - name: upload result
         uses: actions/upload-artifact@v7

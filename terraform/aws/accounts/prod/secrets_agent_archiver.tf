@@ -13,8 +13,8 @@ data "aws_secretsmanager_secret_version" "apps_agent_archiver_production" {
 resource "aws_secretsmanager_secret_version" "apps_agent_archiver_production" {
   secret_id = aws_secretsmanager_secret.apps_agent_archiver_production.id
   secret_string = jsonencode(merge({
-    CLOUDFLARE_ACCOUNT_ID = data.cloudflare_account.account.id
-    CLOUDFLARE_API_TOKEN  = cloudflare_account_token.agent_archiver_production.value
+    AA_CLOUDFLARE_ACCOUNT_ID = data.cloudflare_account.account.id
+    AA_CLOUDFLARE_API_TOKEN  = cloudflare_account_token.agent_archiver_production.value
   }, jsondecode(data.aws_secretsmanager_secret_version.apps_agent_archiver_production.secret_string)))
 }
 

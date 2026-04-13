@@ -1,6 +1,5 @@
 resource "github_repository" "job" {
-  name         = "job"
-  homepage_url = "https://seanlingren.com"
+  name = "job"
 
   visibility = "private"
 
@@ -50,6 +49,6 @@ resource "github_repository_ruleset" "job" {
 }
 
 resource "github_actions_repository_permissions" "job" {
-  repository = github_repository.job.name
-  enabled    = false
+  repository      = github_repository.job.name
+  allowed_actions = "all"
 }

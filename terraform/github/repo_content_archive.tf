@@ -1,5 +1,5 @@
-resource "github_repository" "job" {
-  name = "job"
+resource "github_repository" "content_archive" {
+  name = "content-archive"
 
   visibility = "private"
 
@@ -7,7 +7,7 @@ resource "github_repository" "job" {
   has_issues           = false
   has_projects         = false
   has_discussions      = false
-  vulnerability_alerts = true
+  vulnerability_alerts = false
 
   allow_auto_merge       = true
   allow_merge_commit     = false
@@ -17,19 +17,19 @@ resource "github_repository" "job" {
   delete_branch_on_merge = true
 }
 
-resource "github_branch" "job" {
-  repository = github_repository.job.name
+resource "github_branch" "content_archive" {
+  repository = github_repository.content_archive.name
   branch     = "main"
 }
 
-resource "github_branch_default" "job" {
-  repository = github_repository.job.name
-  branch     = github_branch.job.branch
+resource "github_branch_default" "content_archive" {
+  repository = github_repository.content_archive.name
+  branch     = github_branch.content_archive.branch
 }
 
-resource "github_repository_ruleset" "job" {
+resource "github_repository_ruleset" "content_archive" {
   name        = "main"
-  repository  = github_repository.job.name
+  repository  = github_repository.content_archive.name
   target      = "branch"
   enforcement = "active"
 
@@ -48,7 +48,7 @@ resource "github_repository_ruleset" "job" {
   }
 }
 
-resource "github_actions_repository_permissions" "job" {
-  repository      = github_repository.job.name
+resource "github_actions_repository_permissions" "content_archive" {
+  repository      = github_repository.content_archive.name
   allowed_actions = "all"
 }

@@ -27,6 +27,27 @@ resource "github_branch_default" "content_archive" {
   branch     = github_branch.content_archive.branch
 }
 
+resource "github_repository_ruleset" "content_archive" {
+  name        = "main"
+  repository  = github_repository.content_archive.name
+  target      = "branch"
+  enforcement = "active"
+
+  conditions {
+    ref_name {
+      include = ["~DEFAULT_BRANCH"]
+      exclude = []
+    }
+  }
+
+  rules {
+    deletion = true
+
+    required_linear_history = true
+    non_fast_forward        = true
+  }
+}
+
 resource "github_actions_repository_permissions" "content_archive" {
   repository      = github_repository.content_archive.name
   allowed_actions = "all"

@@ -74,9 +74,9 @@ resource "github_repository_ruleset" "infra" {
 }
 
 resource "github_actions_secret" "infra_aws_account_ids" {
-  repository      = github_repository.infra.name
-  secret_name     = "AWS_ACCOUNT_IDS"
-  plaintext_value = jsonencode(data.terraform_remote_state.organization.outputs.account_names_to_account_ids)
+  repository  = github_repository.infra.name
+  secret_name = "AWS_ACCOUNT_IDS"
+  value       = jsonencode(data.terraform_remote_state.organization.outputs.account_names_to_account_ids)
 }
 
 resource "github_actions_repository_permissions" "infra" {

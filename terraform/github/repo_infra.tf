@@ -4,11 +4,10 @@ resource "github_repository" "infra" {
 
   visibility = "public"
 
-  has_wiki             = false
-  has_issues           = true
-  has_projects         = false
-  has_discussions      = false
-  vulnerability_alerts = true
+  has_wiki        = false
+  has_issues      = true
+  has_projects    = false
+  has_discussions = false
 
   allow_auto_merge       = true
   allow_merge_commit     = false

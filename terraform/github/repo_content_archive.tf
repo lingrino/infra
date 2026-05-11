@@ -3,11 +3,10 @@ resource "github_repository" "content_archive" {
 
   visibility = "private"
 
-  has_wiki             = false
-  has_issues           = false
-  has_projects         = false
-  has_discussions      = false
-  vulnerability_alerts = false
+  has_wiki        = false
+  has_issues      = false
+  has_projects    = false
+  has_discussions = false
 
   allow_auto_merge       = true
   allow_merge_commit     = false

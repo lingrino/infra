@@ -4,11 +4,10 @@ resource "github_repository" "homebrew_tap" {
 
   visibility = "public"
 
-  has_wiki             = false
-  has_issues           = false
-  has_projects         = false
-  has_discussions      = false
-  vulnerability_alerts = true
+  has_wiki        = false
+  has_issues      = false
+  has_projects    = false
+  has_discussions = false
 
   allow_auto_merge       = true
   allow_merge_commit     = false

@@ -13,7 +13,7 @@ data "aws_secretsmanager_secret_version" "anthropic_keys_github_actions" {
 resource "github_actions_secret" "anthropic_github_actions" {
   for_each = toset(data.github_repositories.lingrino.names)
 
-  repository      = each.value
-  secret_name     = "ANTHROPIC_API_KEY"
-  plaintext_value = jsondecode(data.aws_secretsmanager_secret_version.anthropic_keys_github_actions.secret_string)["ANTHROPIC_API_KEY"]
+  repository  = each.value
+  secret_name = "ANTHROPIC_API_KEY"
+  value       = jsondecode(data.aws_secretsmanager_secret_version.anthropic_keys_github_actions.secret_string)["ANTHROPIC_API_KEY"]
 }

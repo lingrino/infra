@@ -41,25 +41,25 @@ data "aws_secretsmanager_secret_version" "github_keys_tflint" {
 }
 
 resource "github_actions_secret" "agent_archiver_goreleaser" {
-  repository      = "agent-archiver"
-  secret_name     = "GORELEASER_GITHUB_TOKEN"
-  plaintext_value = jsondecode(data.aws_secretsmanager_secret_version.github_keys_goreleaser.secret_string)["GORELEASER_GITHUB_TOKEN"]
+  repository  = "agent-archiver"
+  secret_name = "GORELEASER_GITHUB_TOKEN"
+  value       = jsondecode(data.aws_secretsmanager_secret_version.github_keys_goreleaser.secret_string)["GORELEASER_GITHUB_TOKEN"]
 }
 
 resource "github_actions_secret" "vaku_goreleaser" {
-  repository      = "vaku"
-  secret_name     = "GORELEASER_GITHUB_TOKEN"
-  plaintext_value = jsondecode(data.aws_secretsmanager_secret_version.github_keys_goreleaser.secret_string)["GORELEASER_GITHUB_TOKEN"]
+  repository  = "vaku"
+  secret_name = "GORELEASER_GITHUB_TOKEN"
+  value       = jsondecode(data.aws_secretsmanager_secret_version.github_keys_goreleaser.secret_string)["GORELEASER_GITHUB_TOKEN"]
 }
 
 resource "github_actions_secret" "glen_goreleaser" {
-  repository      = "glen"
-  secret_name     = "GORELEASER_GITHUB_TOKEN"
-  plaintext_value = jsondecode(data.aws_secretsmanager_secret_version.github_keys_goreleaser.secret_string)["GORELEASER_GITHUB_TOKEN"]
+  repository  = "glen"
+  secret_name = "GORELEASER_GITHUB_TOKEN"
+  value       = jsondecode(data.aws_secretsmanager_secret_version.github_keys_goreleaser.secret_string)["GORELEASER_GITHUB_TOKEN"]
 }
 
 resource "github_actions_secret" "infra_personal_tflint" {
-  repository      = "infra"
-  secret_name     = "TFLINT_GITHUB_TOKEN"
-  plaintext_value = jsondecode(data.aws_secretsmanager_secret_version.github_keys_tflint.secret_string)["TFLINT_GITHUB_TOKEN"]
+  repository  = "infra"
+  secret_name = "TFLINT_GITHUB_TOKEN"
+  value       = jsondecode(data.aws_secretsmanager_secret_version.github_keys_tflint.secret_string)["TFLINT_GITHUB_TOKEN"]
 }

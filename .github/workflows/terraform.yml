@@ -83,7 +83,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v6
       - name: install terraform
-        uses: hashicorp/setup-terraform@v4.0.0
+        uses: hashicorp/setup-terraform@v4.0.1
         with:
           terraform_wrapper: false
       - name: setup aws

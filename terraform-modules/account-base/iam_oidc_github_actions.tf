@@ -12,20 +12,36 @@ resource "aws_iam_openid_connect_provider" "github_actions" {
   }
 }
 
-resource "aws_iam_role" "github_actions" {
-  name = "github-actions"
+resource "aws_iam_role" "github_actions_admin" {
+  name = "github-actions-admin"
   path = "/service/"
 
   assume_role_policy = data.aws_iam_policy_document.arp_github_actions.json
 
   tags = {
-    Name = "github-actions"
+    Name = "github-actions-admin"
   }
 }
 
-resource "aws_iam_role_policy_attachments_exclusive" "github_actions_administrator" {
-  role_name   = aws_iam_role.github_actions.name
+resource "aws_iam_role" "github_actions_read" {
+  name = "github-actions-read"
+  path = "/service/"
+
+  assume_role_policy = data.aws_iam_policy_document.arp_github_actions_read.json
+
+  tags = {
+    Name = "github-actions-read"
+  }
+}
+
+resource "aws_iam_role_policy_attachments_exclusive" "github_actions_admin" {
+  role_name   = aws_iam_role.github_actions_admin.name
   policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
+}
+
+resource "aws_iam_role_policy_attachments_exclusive" "github_actions_read" {
+  role_name   = aws_iam_role.github_actions_read.name
+  policy_arns = ["arn:aws:iam::aws:policy/ReadOnlyAccess"]
 }
 
 data "aws_iam_policy_document" "arp_github_actions" {
@@ -49,6 +65,36 @@ data "aws_iam_policy_document" "arp_github_actions" {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
       values   = ["repo:lingrino/infra:ref:*", "repo:lingrino/infra:pull_request"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "arp_github_actions_read" {
+  statement {
+    sid = "OIDCGithubActions"
+
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.github_actions.arn]
+    }
+
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringLike"
+      variable = "token.actions.githubusercontent.com:sub"
+      values = [
+        "repo:lingrino/infra:ref:*",
+        "repo:lingrino/infra:pull_request",
+        "repo:lingrino/content-archive:ref:*",
+        "repo:lingrino/content-archive:pull_request",
+      ]
     }
   }
 }

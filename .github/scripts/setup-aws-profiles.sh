@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Fetches a GitHub Actions OIDC token and generates ~/.aws/config with a
-# named profile per account. Each profile assumes the github-actions OIDC role.
+# named profile per account. Each profile assumes the github-actions-admin OIDC role.
 #
 # Requires:
 #   - ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN (set by GitHub Actions when id-token: write is granted)
@@ -19,7 +19,7 @@ if [[ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]]; then
 fi
 
 REGION="us-west-2"
-ROLE_PATH="service/github-actions"
+ROLE_PATH="service/github-actions-admin"
 TOKEN_FILE="${RUNNER_TEMP}/oidc-token"
 
 # Fetch OIDC token
@@ -46,7 +46,7 @@ echo "${AWS_ACCOUNT_IDS}" | jq -r 'to_entries[] | "\(.key)\t\(.value)"' | while 
 [profile ${name}]
 role_arn = arn:aws:iam::${id}:role/${ROLE_PATH}
 web_identity_token_file = ${TOKEN_FILE}
-role_session_name = github-actions
+role_session_name = github-actions-admin
 region = ${REGION}
 
 EOF

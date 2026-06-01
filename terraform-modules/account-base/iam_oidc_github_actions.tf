@@ -40,8 +40,36 @@ resource "aws_iam_role_policy_attachments_exclusive" "github_actions_admin" {
 }
 
 resource "aws_iam_role_policy_attachments_exclusive" "github_actions_read" {
-  role_name   = aws_iam_role.github_actions_read.name
-  policy_arns = ["arn:aws:iam::aws:policy/ReadOnlyAccess"]
+  role_name = aws_iam_role.github_actions_read.name
+  policy_arns = [
+    "arn:aws:iam::aws:policy/ReadOnlyAccess",
+    aws_iam_policy.github_actions_read_secretsmanager.arn,
+  ]
+}
+
+resource "aws_iam_policy" "github_actions_read_secretsmanager" {
+  name   = "github-actions-read-secretsmanager"
+  path   = "/service/"
+  policy = data.aws_iam_policy_document.github_actions_read_secretsmanager.json
+
+  tags = {
+    Name = "github-actions-read-secretsmanager"
+  }
+}
+
+data "aws_iam_policy_document" "github_actions_read_secretsmanager" {
+  statement {
+    sid = "SecretsManagerRead"
+
+    actions = [
+      "secretsmanager:BatchGetSecretValue",
+      "secretsmanager:GetSecretValue",
+    ]
+
+    resources = [
+      "arn:aws:secretsmanager:*:${data.aws_caller_identity.current.account_id}:secret:apps/*",
+    ]
+  }
 }
 
 data "aws_iam_policy_document" "arp_github_actions" {

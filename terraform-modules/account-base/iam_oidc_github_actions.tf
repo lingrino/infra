@@ -120,8 +120,6 @@ data "aws_iam_policy_document" "arp_github_actions_read" {
       values = [
         "repo:lingrino/infra:ref:*",
         "repo:lingrino/infra:pull_request",
-        "repo:lingrino/content-archive:ref:*",
-        "repo:lingrino/content-archive:pull_request",
       ]
     }
   }

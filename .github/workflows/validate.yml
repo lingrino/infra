@@ -16,7 +16,7 @@ jobs:
         with:
           github-token: ${{ secrets.TFLINT_GITHUB_TOKEN }}
       - name: checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: terraform format

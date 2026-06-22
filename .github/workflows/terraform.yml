@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: determine command
@@ -81,7 +81,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: install terraform
         uses: hashicorp/setup-terraform@v4.0.1
         with:

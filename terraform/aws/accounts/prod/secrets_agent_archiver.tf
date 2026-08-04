@@ -32,7 +32,7 @@ resource "cloudflare_account_token" "agent_archiver_production" {
       })
       permission_groups = [
         for k, v in data.cloudflare_account_api_token_permission_groups_list.all.result :
-        { id = v.id } if v.name == "Browser Rendering Write"
+        { id = v.id } if v.name == "Browser Run Write"
       ]
     }
   ]

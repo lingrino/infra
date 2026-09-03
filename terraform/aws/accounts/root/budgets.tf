@@ -2,7 +2,7 @@ resource "aws_budgets_budget" "high" {
   name = "high"
 
   budget_type  = "COST"
-  limit_amount = "15.0"
+  limit_amount = "50.0"
   limit_unit   = "USD"
 
   time_unit         = "MONTHLY"
@@ -27,7 +27,7 @@ resource "aws_budgets_budget" "very_high" {
   name = "very_high"
 
   budget_type  = "COST"
-  limit_amount = "25.0"
+  limit_amount = "70.0"
   limit_unit   = "USD"
 
   time_unit         = "MONTHLY"

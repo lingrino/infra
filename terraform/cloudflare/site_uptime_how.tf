@@ -30,8 +30,8 @@ resource "cloudflare_pages_project" "uptime" {
   production_branch = "main"
 
   build_config = {
-    build_command   = "npm run build"
-    destination_dir = ".svelte-kit/cloudflare"
+    build_command   = "" # no build step, set explicitly because omitting keeps the old command
+    destination_dir = "public"
     build_caching   = true
   }
 

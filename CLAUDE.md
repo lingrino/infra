@@ -20,12 +20,20 @@ terraform fmt -recursive                  # Auto-format all files
 cd terraform/<workspace> && terraform init && terraform plan  # Plan changes locally
 ```
 
-Note: Plans and applies are run locally. AWS credentials are provided via profiles (root, prod, audit, auth, dev). The `prod` profile is always required for state access (see State Management below).
+Note: AWS credentials are provided via profiles (root, prod, audit, auth, dev). The `prod` profile is always required for state access (see State Management below).
+
+### CI/CD
+`.github/workflows/terraform.yml` runs Terraform for workspaces affected by a change (detected by `.github/scripts/detect-changes.sh`, including module dependents):
+- Pull requests: `terraform plan`, posted as a PR comment
+- Push to `main`: `terraform apply -auto-approve` — merging applies to real infrastructure
+- Weekly schedule (Monday) and `workflow_dispatch`: plan or apply across all workspaces to reconcile drift
+
+CI authenticates to AWS via GitHub OIDC, assuming `service/github-actions-admin` in each account. A PR plan passing does not guarantee the apply will succeed: some provider/API validation only happens at apply time.
 
 ## Architecture
 
 ### Workspaces
-Each workspace maps to a directory under `terraform/`. Plans and applies are run locally:
+Each workspace maps to a directory under `terraform/`:
 
 - `terraform/aws/accounts/{root,audit,auth,dev,prod}` - Per-account AWS resources
 - `terraform/aws/common/organization` - AWS Organization and member accounts

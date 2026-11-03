@@ -13,8 +13,6 @@ jobs:
         uses: hashicorp/setup-terraform@v4.0.1
       - name: install tflint
         uses: terraform-linters/setup-tflint@v6.3.2
-        with:
-          github-token: ${{ secrets.TFLINT_GITHUB_TOKEN }}
       - name: checkout
         uses: actions/checkout@v7
         with:
@@ -22,6 +20,8 @@ jobs:
       - name: terraform format
         run: terraform fmt -check -diff -recursive
       - name: terraform lint
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           tflint --version
           tflint --init

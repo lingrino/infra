@@ -41,22 +41,7 @@ resource "cloudflare_account_token" "infra" {
   name       = "infra"
   account_id = data.cloudflare_account.account.id
 
-  policies = [
-    {
-      effect = "allow"
-      resources = jsonencode({
-        "com.cloudflare.api.account.${data.cloudflare_account.account.id}" = "*"
-      })
-      permission_groups = local.account_permission_group_ids
-    },
-    {
-      effect = "allow"
-      resources = jsonencode({
-        "com.cloudflare.api.account.${data.cloudflare_account.account.id}" = "*"
-      })
-      permission_groups = local.zone_permission_group_ids
-    }
-  ]
+  policies = local.all_permissions_token_policies
 }
 
 #################################
@@ -83,20 +68,5 @@ resource "cloudflare_account_token" "local" {
   name       = "local"
   account_id = data.cloudflare_account.account.id
 
-  policies = [
-    {
-      effect = "allow"
-      resources = jsonencode({
-        "com.cloudflare.api.account.${data.cloudflare_account.account.id}" = "*"
-      })
-      permission_groups = local.account_permission_group_ids
-    },
-    {
-      effect = "allow"
-      resources = jsonencode({
-        "com.cloudflare.api.account.${data.cloudflare_account.account.id}" = "*"
-      })
-      permission_groups = local.zone_permission_group_ids
-    }
-  ]
+  policies = local.all_permissions_token_policies
 }

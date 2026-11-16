@@ -3,7 +3,7 @@ resource "github_repository" "fred" {
   description  = "mac launcher and clipboard manager"
   homepage_url = "https://seanlingren.com"
 
-  visibility = "private"
+  visibility = "public"
 
   has_wiki        = false
   has_issues      = false
@@ -16,6 +16,15 @@ resource "github_repository" "fred" {
   allow_rebase_merge     = false
   allow_update_branch    = true
   delete_branch_on_merge = true
+
+  security_and_analysis {
+    secret_scanning {
+      status = "enabled"
+    }
+    secret_scanning_push_protection {
+      status = "enabled"
+    }
+  }
 }
 
 resource "github_branch" "fred" {
@@ -66,12 +75,11 @@ resource "github_repository_ruleset" "fred" {
 
 resource "github_actions_repository_permissions" "fred" {
   repository      = github_repository.fred.name
-  allowed_actions = "all"
+  allowed_actions = "selected"
 
-  # todo uncomment when repo is public
-  # allowed_actions_config {
-  #   github_owned_allowed = true
-  #   verified_allowed     = true
-  #   patterns_allowed     = []
-  # }
+  allowed_actions_config {
+    github_owned_allowed = true
+    verified_allowed     = true
+    patterns_allowed     = []
+  }
 }

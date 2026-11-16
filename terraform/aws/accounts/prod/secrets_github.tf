@@ -45,3 +45,19 @@ resource "github_actions_secret" "glen_goreleaser" {
   secret_name = "GORELEASER_GITHUB_TOKEN"
   value       = jsondecode(data.aws_secretsmanager_secret_version.github_keys_goreleaser.secret_string)["GORELEASER_GITHUB_TOKEN"]
 }
+
+resource "github_actions_secret" "fred_homebrew_tap" {
+  repository  = "fred"
+  secret_name = "HOMEBREW_TAP_GITHUB_TOKEN"
+  value       = jsondecode(data.aws_secretsmanager_secret_version.github_keys_goreleaser.secret_string)["GORELEASER_GITHUB_TOKEN"]
+}
+
+# Apple Developer ID signing + notarization for fred's releases. The value (JSON) is set
+# by hand; a follow-up adds the data source and fred's Actions secrets once it exists.
+resource "aws_secretsmanager_secret" "github_keys_fred" {
+  name = "github/keys/fred"
+
+  tags = {
+    Name = "github/keys/fred"
+  }
+}

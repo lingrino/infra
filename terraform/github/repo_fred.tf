@@ -46,10 +46,32 @@ resource "github_repository_ruleset" "fred" {
 
     required_linear_history = true
     non_fast_forward        = true
+
+    pull_request {}
+
+    required_status_checks {
+      strict_required_status_checks_policy = true
+
+      dynamic "required_check" {
+        for_each = ["lint", "test", "scripts"]
+
+        content {
+          context        = required_check.value
+          integration_id = 15368
+        }
+      }
+    }
   }
 }
 
 resource "github_actions_repository_permissions" "fred" {
-  repository = github_repository.fred.name
-  enabled    = false
+  repository      = github_repository.fred.name
+  allowed_actions = "all"
+
+  # todo uncomment when repo is public
+  # allowed_actions_config {
+  #   github_owned_allowed = true
+  #   verified_allowed     = true
+  #   patterns_allowed     = []
+  # }
 }

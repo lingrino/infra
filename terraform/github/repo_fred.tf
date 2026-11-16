@@ -1,6 +1,6 @@
 resource "github_repository" "fred" {
   name         = "fred"
-  description  = "personal macOS launcher and clipboard manager"
+  description  = "mac launcher and clipboard manager"
   homepage_url = "https://seanlingren.com"
 
   visibility = "private"

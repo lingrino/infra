@@ -53,11 +53,29 @@ resource "github_actions_secret" "fred_homebrew_tap" {
 }
 
 # Apple Developer ID signing + notarization for fred's releases. The value (JSON) is set
-# by hand; a follow-up adds the data source and fred's Actions secrets once it exists.
+# by fred's scripts/store-release-secrets.sh, which checks it before storing.
 resource "aws_secretsmanager_secret" "github_keys_fred" {
   name = "github/keys/fred"
 
   tags = {
     Name = "github/keys/fred"
   }
+}
+
+data "aws_secretsmanager_secret_version" "github_keys_fred" {
+  secret_id = aws_secretsmanager_secret.github_keys_fred.id
+}
+
+resource "github_actions_secret" "fred_release" {
+  for_each = toset([
+    "APPLE_CERT_P12_BASE64",
+    "APPLE_CERT_PASSWORD",
+    "APPLE_API_KEY_P8_BASE64",
+    "APPLE_API_KEY_ID",
+    "APPLE_API_ISSUER_ID",
+  ])
+
+  repository  = "fred"
+  secret_name = each.key
+  value       = jsondecode(data.aws_secretsmanager_secret_version.github_keys_fred.secret_string)[each.key]
 }

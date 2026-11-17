@@ -17,8 +17,14 @@ resource "github_repository" "peep" {
   allow_update_branch    = true
   delete_branch_on_merge = true
 
-  # Secret scanning is added in a follow-up: GitHub rejects it in the same update that
-  # makes a private repo public ("not available for this repository").
+  security_and_analysis {
+    secret_scanning {
+      status = "enabled"
+    }
+    secret_scanning_push_protection {
+      status = "enabled"
+    }
+  }
 }
 
 resource "github_branch" "peep" {

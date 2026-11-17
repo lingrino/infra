@@ -65,8 +65,9 @@ locals {
 }
 
 # The team's Developer ID Application certificate and App Store Connect API key (JSON),
-# shared by every Mac app. Set by fred's scripts/store-release-secrets.sh, which checks it
-# before storing; repos get a new value on the next apply.
+# shared by every Mac app. Set by scripts/store-release-secrets.sh in fred (the template
+# the other apps copy), which checks it before storing; repos get a new value on the next
+# apply.
 resource "aws_secretsmanager_secret" "github_keys_apple_developer" {
   name = "github/keys/apple-developer"
 

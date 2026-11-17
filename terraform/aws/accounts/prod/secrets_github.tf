@@ -76,9 +76,8 @@ resource "aws_secretsmanager_secret" "github_keys_apple_developer" {
   }
 }
 
-# Reads AWSCURRENT; going through the one-time copy only orders the first read after it.
 data "aws_secretsmanager_secret_version" "github_keys_apple_developer" {
-  secret_id = aws_secretsmanager_secret_version.github_keys_apple_developer_from_fred.secret_id
+  secret_id = aws_secretsmanager_secret.github_keys_apple_developer.id
 }
 
 resource "github_actions_secret" "mac_app_apple_developer" {
@@ -100,54 +99,13 @@ resource "github_actions_secret" "mac_app_homebrew_tap" {
   value       = jsondecode(data.aws_secretsmanager_secret_version.github_keys_goreleaser.secret_string)["GORELEASER_GITHUB_TOKEN"]
 }
 
-moved {
-  from = github_actions_secret.fred_homebrew_tap
-  to   = github_actions_secret.mac_app_homebrew_tap["fred"]
-}
+# The one-time copy from the old github/keys/fred (deleted here, recoverable for 30 days)
+# stays the secret's value until the next store; Terraform just stops tracking that
+# version. This block can go once it has applied.
+removed {
+  from = aws_secretsmanager_secret_version.github_keys_apple_developer_from_fred
 
-moved {
-  from = github_actions_secret.fred_release["APPLE_CERT_P12_BASE64"]
-  to   = github_actions_secret.mac_app_apple_developer["fred/APPLE_CERT_P12_BASE64"]
-}
-
-moved {
-  from = github_actions_secret.fred_release["APPLE_CERT_PASSWORD"]
-  to   = github_actions_secret.mac_app_apple_developer["fred/APPLE_CERT_PASSWORD"]
-}
-
-moved {
-  from = github_actions_secret.fred_release["APPLE_API_KEY_P8_BASE64"]
-  to   = github_actions_secret.mac_app_apple_developer["fred/APPLE_API_KEY_P8_BASE64"]
-}
-
-moved {
-  from = github_actions_secret.fred_release["APPLE_API_KEY_ID"]
-  to   = github_actions_secret.mac_app_apple_developer["fred/APPLE_API_KEY_ID"]
-}
-
-moved {
-  from = github_actions_secret.fred_release["APPLE_API_ISSUER_ID"]
-  to   = github_actions_secret.mac_app_apple_developer["fred/APPLE_API_ISSUER_ID"]
-}
-
-# The old fred-only secret. Its value is copied once into github/keys/apple-developer
-# through a write-only argument (the copy adds nothing to state; the data source above
-# holds the value, as the old one did). A follow-up removes both right after this applies,
-# before anything writes a newer version.
-resource "aws_secretsmanager_secret" "github_keys_fred" {
-  name = "github/keys/fred"
-
-  tags = {
-    Name = "github/keys/fred"
+  lifecycle {
+    destroy = false
   }
-}
-
-ephemeral "aws_secretsmanager_secret_version" "github_keys_fred" {
-  secret_id = aws_secretsmanager_secret.github_keys_fred.id
-}
-
-resource "aws_secretsmanager_secret_version" "github_keys_apple_developer_from_fred" {
-  secret_id                = aws_secretsmanager_secret.github_keys_apple_developer.id
-  secret_string_wo         = ephemeral.aws_secretsmanager_secret_version.github_keys_fred.secret_string
-  secret_string_wo_version = 1
 }

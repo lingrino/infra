@@ -3,7 +3,7 @@ resource "github_repository" "peep" {
   description  = "mac quick look previews for code and markdown"
   homepage_url = "https://seanlingren.com"
 
-  visibility = "private"
+  visibility = "public"
 
   has_wiki        = false
   has_issues      = false
@@ -16,6 +16,9 @@ resource "github_repository" "peep" {
   allow_rebase_merge     = false
   allow_update_branch    = true
   delete_branch_on_merge = true
+
+  # Secret scanning is added in a follow-up: GitHub rejects it in the same update that
+  # makes a private repo public ("not available for this repository").
 }
 
 resource "github_branch" "peep" {

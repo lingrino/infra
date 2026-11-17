@@ -55,10 +55,31 @@ resource "github_repository_ruleset" "peep" {
 
     required_linear_history = true
     non_fast_forward        = true
+
+    pull_request {}
+
+    required_status_checks {
+      strict_required_status_checks_policy = true
+
+      dynamic "required_check" {
+        for_each = ["check", "package", "scripts"]
+
+        content {
+          context        = required_check.value
+          integration_id = 15368
+        }
+      }
+    }
   }
 }
 
 resource "github_actions_repository_permissions" "peep" {
-  repository = github_repository.peep.name
-  enabled    = false
+  repository      = github_repository.peep.name
+  allowed_actions = "selected"
+
+  allowed_actions_config {
+    github_owned_allowed = true
+    verified_allowed     = true
+    patterns_allowed     = []
+  }
 }

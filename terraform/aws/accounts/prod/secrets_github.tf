@@ -75,6 +75,7 @@ resource "aws_secretsmanager_secret" "github_keys_apple_developer" {
   }
 }
 
+# Reads AWSCURRENT; going through the one-time copy only orders the first read after it.
 data "aws_secretsmanager_secret_version" "github_keys_apple_developer" {
   secret_id = aws_secretsmanager_secret_version.github_keys_apple_developer_from_fred.secret_id
 }
@@ -129,7 +130,9 @@ moved {
 }
 
 # The old fred-only secret. Its value is copied once into github/keys/apple-developer
-# (write-only, so it never lands in state); a follow-up removes both.
+# through a write-only argument (the copy adds nothing to state; the data source above
+# holds the value, as the old one did). A follow-up removes both right after this applies,
+# before anything writes a newer version.
 resource "aws_secretsmanager_secret" "github_keys_fred" {
   name = "github/keys/fred"
 

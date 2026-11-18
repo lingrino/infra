@@ -10,6 +10,10 @@ resource "github_repository" "peep" {
   has_projects    = false
   has_discussions = false
 
+  # Peep has no dependencies: the manifests under Examples/ (package.json, Cargo.lock,
+  # go.mod, ...) are preview samples, so every alert would be about one of them.
+  vulnerability_alerts = false
+
   allow_auto_merge       = true
   allow_merge_commit     = false
   allow_squash_merge     = true

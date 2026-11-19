@@ -3,7 +3,7 @@ resource "github_repository" "autotouch" {
   description  = "mac custom trackpad actions"
   homepage_url = "https://seanlingren.com"
 
-  visibility = "private"
+  visibility = "public"
 
   has_wiki        = false
   has_issues      = false
@@ -16,6 +16,9 @@ resource "github_repository" "autotouch" {
   allow_rebase_merge     = false
   allow_update_branch    = true
   delete_branch_on_merge = true
+
+  # Secret scanning is added in a follow-up: GitHub rejects it in the same update that
+  # makes a private repo public ("not available for this repository").
 }
 
 resource "github_branch" "autotouch" {
@@ -66,12 +69,11 @@ resource "github_repository_ruleset" "autotouch" {
 
 resource "github_actions_repository_permissions" "autotouch" {
   repository      = github_repository.autotouch.name
-  allowed_actions = "all"
+  allowed_actions = "selected"
 
-  # todo uncomment when repo is public
-  # allowed_actions_config {
-  #   github_owned_allowed = true
-  #   verified_allowed     = true
-  #   patterns_allowed     = []
-  # }
+  allowed_actions_config {
+    github_owned_allowed = true
+    verified_allowed     = true
+    patterns_allowed     = []
+  }
 }

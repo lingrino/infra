@@ -1,6 +1,6 @@
 resource "github_repository" "autotouch" {
   name         = "autotouch"
-  description  = "mac three-finger trackpad gestures"
+  description  = "mac custom trackpad actions"
   homepage_url = "https://seanlingren.com"
 
   visibility = "private"

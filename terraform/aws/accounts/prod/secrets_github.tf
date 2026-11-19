@@ -53,7 +53,7 @@ resource "github_actions_secret" "glen_goreleaser" {
 # workflow is the template). Each one gets the Developer ID + notarization secrets and
 # the tap token: add a repo here when it starts releasing.
 locals {
-  mac_app_repos = ["fred", "peep"]
+  mac_app_repos = ["fred", "peep", "autotouch"]
 
   apple_developer_secret_names = [
     "APPLE_CERT_P12_BASE64",

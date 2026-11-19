@@ -10,6 +10,9 @@ resource "github_repository" "peep" {
   has_projects    = false
   has_discussions = false
 
+  # no dependencies: the manifests in examples/ are preview samples
+  vulnerability_alerts = false
+
   allow_auto_merge       = true
   allow_merge_commit     = false
   allow_squash_merge     = true

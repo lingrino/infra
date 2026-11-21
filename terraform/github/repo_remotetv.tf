@@ -3,7 +3,10 @@ resource "github_repository" "remotetv" {
   description  = "mac apple tv remote"
   homepage_url = "https://seanlingren.com"
 
-  visibility = "private"
+  visibility = "public"
+
+  # Secret scanning is added in a follow-up: GitHub rejects it in the same update that
+  # makes a private repo public ("not available for this repository").
 
   has_wiki        = false
   has_issues      = false
@@ -66,12 +69,11 @@ resource "github_repository_ruleset" "remotetv" {
 
 resource "github_actions_repository_permissions" "remotetv" {
   repository      = github_repository.remotetv.name
-  allowed_actions = "all"
+  allowed_actions = "selected"
 
-  # todo uncomment when repo is public
-  # allowed_actions_config {
-  #   github_owned_allowed = true
-  #   verified_allowed     = true
-  #   patterns_allowed     = []
-  # }
+  allowed_actions_config {
+    github_owned_allowed = true
+    verified_allowed     = true
+    patterns_allowed     = []
+  }
 }

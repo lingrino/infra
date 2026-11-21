@@ -5,9 +5,6 @@ resource "github_repository" "remotetv" {
 
   visibility = "public"
 
-  # Secret scanning is added in a follow-up: GitHub rejects it in the same update that
-  # makes a private repo public ("not available for this repository").
-
   has_wiki        = false
   has_issues      = false
   has_projects    = false
@@ -19,6 +16,15 @@ resource "github_repository" "remotetv" {
   allow_rebase_merge     = false
   allow_update_branch    = true
   delete_branch_on_merge = true
+
+  security_and_analysis {
+    secret_scanning {
+      status = "enabled"
+    }
+    secret_scanning_push_protection {
+      status = "enabled"
+    }
+  }
 }
 
 resource "github_branch" "remotetv" {
